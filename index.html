@@ -1,195 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-
-  <head>
+<head>
     <meta charset="UTF-8">
-    <title>BitmapText Tint</title>
-    <style>
-      body {
-        margin: 0;
-        background-color: #00006E;
-      }
-
-      /* Settings Cog Icon */
-      #settings-cog {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        width: 40px;
-        height: 40px;
-        cursor: pointer;
-        z-index: 1000;
-        transition: transform 0.3s ease;
-      }
-
-      #settings-cog:hover {
-        transform: rotate(30deg);
-      }
-
-      #settings-cog svg {
-        width: 100%;
-        height: 100%;
-        fill: #ffffff;
-      }
-
-      /* Settings Menu Overlay */
-      #settings-menu {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.8);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 999;
-      }
-
-      #settings-menu.visible {
-        display: flex;
-      }
-
-      .settings-panel {
-        background-color: #1a1a2e;
-        border-radius: 10px;
-        padding: 30px;
-        min-width: 400px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-      }
-
-      .settings-panel h2 {
-        margin: 0 0 25px 0;
-        color: #ffffff;
-        font-family: Arial, sans-serif;
-        text-align: center;
-      }
-
-      .setting-item {
-        margin-bottom: 20px;
-      }
-
-      .setting-item label {
-        display: block;
-        color: #ffffff;
-        font-family: Arial, sans-serif;
-        margin-bottom: 8px;
-        font-size: 14px;
-      }
-
-      .setting-item select {
-        width: 100%;
-        padding: 10px;
-        border-radius: 5px;
-        border: 1px solid #444;
-        background-color: #2a2a3e;
-        color: #ffffff;
-        font-size: 14px;
-        cursor: pointer;
-      }
-
-      /* Toggle Switch */
-      .toggle-switch {
-        position: relative;
-        display: inline-block;
-        width: 60px;
-        height: 30px;
-      }
-
-      .toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
-
-      .toggle-slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #444;
-        transition: 0.3s;
-        border-radius: 30px;
-      }
-
-      .toggle-slider:before {
-        position: absolute;
-        content: "";
-        height: 22px;
-        width: 22px;
-        left: 4px;
-        bottom: 4px;
-        background-color: white;
-        transition: 0.3s;
-        border-radius: 50%;
-      }
-
-      input:checked + .toggle-slider {
-        background-color: #4CAF50;
-      }
-
-      input:checked + .toggle-slider:before {
-        transform: translateX(30px);
-      }
-
-      .close-btn {
-        background-color: #e74c3c;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 14px;
-        margin-top: 20px;
-        width: 100%;
-        font-family: Arial, sans-serif;
-      }
-
-      .close-btn:hover {
-        background-color: #c0392b;
-      }
-    </style>
-
-  </head>
-    
-  <body>
-
-    <!-- Settings Cog Icon -->
-    <div id="settings-cog">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-        <path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"/>
-      </svg>
-    </div>
-
-    <!-- Settings Menu Overlay -->
-    <div id="settings-menu">
-      <div class="settings-panel">
-        <h2>Settings</h2>
-
-        <div class="setting-item">
-          <label for="color-mode-select">Color Mode</label>
-          <select id="color-mode-select">
-            <option value="pairing">Pairing</option>
-            <option value="complementary">Complementary</option>
-          </select>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phaser 4 Examples</title>
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="css/phaser4-styles.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-content">
+            <a href="index.html" class="logo-link">
+                <img src="images/phaser4logo.png" alt="Phaser 4" class="logo">
+            </a>
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search examples..." class="search-input">
+                <div id="search-results" class="search-results"></div>
+            </div>
+            <a href="https://beam.game" target="_blank" class="beam-logo-link">
+                <img src="images/phaserbeamlogo.png" alt="Phaser Beam" class="beam-logo">
+            </a>
         </div>
+    </header>
 
-        <div class="setting-item">
-          <label for="reverse-toggle">Reverse Color Order</label>
-          <label class="toggle-switch">
-            <input type="checkbox" id="reverse-toggle">
-            <span class="toggle-slider"></span>
-          </label>
+    <main class="main-content">
+        <div class="content-wrapper">
+            <aside class="sidebar">
+                <nav class="category-tree" id="category-tree">
+                    <div class="loading">Loading categories...</div>
+                </nav>
+            </aside>
+
+            <section class="examples-display">
+                <div class="breadcrumb" id="breadcrumb">
+                    <span class="breadcrumb-item active">Home</span>
+                </div>
+
+                <div class="examples-grid" id="examples-grid">
+                    <div class="loading">Loading examples...</div>
+                </div>
+            </section>
         </div>
+    </main>
 
-        <button class="close-btn" id="close-settings">Close</button>
-      </div>
-    </div>
-
-    <script type="module" src="./src/game objects/bitmaptext/tint/iterate-colorwheel.js"></script>
-
-  </body>
-  
+    <script src="js/phaser4-examples.js"></script>
+</body>
 </html>

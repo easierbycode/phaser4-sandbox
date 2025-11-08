@@ -434,7 +434,7 @@ class Phaser4Examples {
 
     openExample(examplePath, isModule = false) {
         // Build return URL with current path
-        let returnUrl = 'phaser4-index.html';
+        let returnUrl = 'index.html';
         if (this.currentPath.length > 0) {
             returnUrl += `?path=${encodeURIComponent(this.currentPath.join('/'))}`;
         }
@@ -454,12 +454,12 @@ class Phaser4Examples {
 
         // Build breadcrumb navigation
         let navHtml = '<div class="breadcrumb-nav">';
-        navHtml += '<a href="phaser4-index.html" class="breadcrumb-item">Home</a>';
+        navHtml += '<a href="index.html" class="breadcrumb-item">Home</a>';
 
         let currentPath = [];
         this.currentPath.forEach(segment => {
             currentPath.push(segment);
-            const url = `phaser4-index.html?path=${encodeURIComponent(currentPath.join('/'))}`;
+            const url = `index.html?path=${encodeURIComponent(currentPath.join('/'))}`;
             navHtml += `<a href="${url}" class="breadcrumb-item">${segment}</a>`;
         });
         navHtml += '</div>';

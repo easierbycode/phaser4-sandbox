@@ -22,7 +22,7 @@ class Phaser4Viewer {
         this.isModuleExample = getQueryString('module') === 'true';
 
         // Setup return path for back button
-        this.returnPath = getQueryString('return') || 'phaser4-index.html';
+        this.returnPath = getQueryString('return') || 'index.html';
 
         // Setup event listeners
         this.setupEventListeners();
@@ -251,6 +251,9 @@ class Phaser4Viewer {
         } else if (this.sourceCode.startsWith('// #module')) {
             // Otherwise, check for module comment in the source
             scriptType = 'module';
+        } else if (this.usesModuleSyntax(this.sourceCode)) {
+            // Auto-detect ES module syntax
+            scriptType = 'module';
         }
 
         // Create and inject example script
@@ -260,6 +263,21 @@ class Phaser4Viewer {
         exampleScript.textContent = this.sourceCode;
 
         document.body.appendChild(exampleScript);
+    }
+
+    usesModuleSyntax(source) {
+        if (!source) {
+            return false;
+        }
+
+        // Remove comments before scanning
+        const withoutBlockComments = source.replace(/\/\*[\s\S]*?\*\//g, '');
+        const cleanedSource = withoutBlockComments.replace(/\/\/.*$/gm, '');
+
+        const importExportPattern = /(^|\n)\s*(import|export)\s+(?!\()/;
+        const dynamicImportPattern = /(^|\n)\s*import\s*\(/;
+
+        return importExportPattern.test(cleanedSource) || dynamicImportPattern.test(cleanedSource);
     }
 
     getExampleTitle() {
