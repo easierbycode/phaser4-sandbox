@@ -1,0 +1,33 @@
+{
+  "path": "./src/",
+  "name": "src",
+  "children": [
+    {
+      "path": "src\\game objects",
+      "name": "game objects",
+      "children": [
+        {
+          "path": "src\\game objects\\bitmaptext",
+          "name": "bitmaptext",
+          "children": [
+            {
+              "path": "src\\game objects\\bitmaptext\\tint",
+              "name": "tint",
+              "children": [
+                {
+                  "path": "src\\game objects\\bitmaptext\\tint\\iterate-colorwheel.js",
+                  "name": "iterate-colorwheel.js",
+                  "birthtimeMs": 1748011838963.8174
+                }
+              ],
+              "birthtimeMs": 1489102620074.4985
+            }
+          ],
+          "birthtimeMs": 1489102620074.4985
+        }
+      ],
+      "birthtimeMs": 1484826517226.2756
+    }
+  ],
+  "birthtimeMs": 1484826517174.695
+}
