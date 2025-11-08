@@ -1,6 +1,88 @@
 
 import Phaser from "https://esm.sh/phaser@4.0.0-rc.5";
 
+// Settings management
+const gameSettings = {
+  colorMode: 'pairing', // 'pairing' or 'complementary'
+  reverse: false
+};
+
+// Initialize settings from URL parameters (if present) or defaults
+function initializeSettings() {
+  const urlParams = new URL(window.location.href).searchParams;
+
+  if (urlParams.get("complementary") === "1") {
+    gameSettings.colorMode = 'complementary';
+  }
+
+  if (urlParams.get("reverse") === "1") {
+    gameSettings.reverse = true;
+  }
+
+  // Update UI to match settings
+  updateUIFromSettings();
+}
+
+// Update UI elements to reflect current settings
+function updateUIFromSettings() {
+  const colorModeSelect = document.getElementById('color-mode-select');
+  const reverseToggle = document.getElementById('reverse-toggle');
+
+  if (colorModeSelect) {
+    colorModeSelect.value = gameSettings.colorMode;
+  }
+
+  if (reverseToggle) {
+    reverseToggle.checked = gameSettings.reverse;
+  }
+}
+
+// Setup settings menu event listeners
+function setupSettingsMenu() {
+  const settingsCog = document.getElementById('settings-cog');
+  const settingsMenu = document.getElementById('settings-menu');
+  const closeBtn = document.getElementById('close-settings');
+  const colorModeSelect = document.getElementById('color-mode-select');
+  const reverseToggle = document.getElementById('reverse-toggle');
+
+  // Open settings menu
+  settingsCog.addEventListener('click', () => {
+    settingsMenu.classList.add('visible');
+  });
+
+  // Close settings menu
+  closeBtn.addEventListener('click', () => {
+    settingsMenu.classList.remove('visible');
+  });
+
+  // Close when clicking overlay
+  settingsMenu.addEventListener('click', (e) => {
+    if (e.target === settingsMenu) {
+      settingsMenu.classList.remove('visible');
+    }
+  });
+
+  // Color mode change
+  colorModeSelect.addEventListener('change', (e) => {
+    gameSettings.colorMode = e.target.value;
+    restartGame();
+  });
+
+  // Reverse toggle change
+  reverseToggle.addEventListener('change', (e) => {
+    gameSettings.reverse = e.target.checked;
+    restartGame();
+  });
+}
+
+// Restart the game with new settings
+function restartGame() {
+  if (window.currentGame) {
+    window.currentGame.destroy(true);
+  }
+  window.currentGame = new Phaser.Game(config);
+}
+
 
 class Example extends Phaser.Scene {
   constructor() {
@@ -37,12 +119,9 @@ class Example extends Phaser.Scene {
 
     const wrap = (n, m) => ((n % m) + m) % m;
 
-    // Specify color pairing method in URL query string
-    // e.g., ?complementary = 1
-    const useComplementary = new URL(window.location.href).searchParams.get("complementary") == "1";
-    // Specify color iteration direction in URL query string
-    // e.g., ?reverse       = 1
-    const reverse = new URL(window.location.href).searchParams.get("reverse") == "1";
+    // Use settings from gameSettings object
+    const useComplementary = gameSettings.colorMode === 'complementary';
+    const reverse = gameSettings.reverse;
     if (reverse) {
       i = len - 1;
     }
@@ -130,4 +209,7 @@ const config = {
   }
 };
 
-const game = new Phaser.Game(config);
+// Initialize settings and start the game
+initializeSettings();
+setupSettingsMenu();
+window.currentGame = new Phaser.Game(config);
