@@ -15,12 +15,24 @@
       "birthtimeMs": 1489102620074.4985
     },
     {
+      "path": "src\\database",
+      "name": "database",
+      "children": [
+        {
+          "path": "src\\database\\csv-load.js",
+          "name": "csv load",
+          "birthtimeMs": 1748011838963.8174
+        }
+      ],
+      "birthtimeMs": 1489102620074.4985
+    },
+    {
       "path": "src\\filters",
       "name": "filters",
       "children": [
         {
           "path": "src\\filters\\shadow.js",
-          "name": "shadow.js",
+          "name": "shadow",
           "birthtimeMs": 1748011838963.8174
         }
       ],
