@@ -50,8 +50,30 @@ class Phaser4Viewer {
         });
 
         // Control buttons
-        document.getElementById('fullscreen-btn').addEventListener('click', () => {
-            this.openInMode('css.html');
+        document.getElementById('fullscreen-btn').addEventListener('click', async () => {
+            const container = document.getElementById('phaser-example');
+            const target = container ? container.querySelector('canvas') || container : null;
+
+            if (!target) {
+                console.warn('No canvas found for fullscreen request.');
+                return;
+            }
+
+            const requestFullscreen =
+                target.requestFullscreen ||
+                target.webkitRequestFullscreen ||
+                target.msRequestFullscreen;
+
+            if (!requestFullscreen) {
+                console.warn('Fullscreen API not supported.');
+                return;
+            }
+
+            try {
+                await requestFullscreen.call(target);
+            } catch (error) {
+                console.error('Failed to enter fullscreen:', error);
+            }
         });
 
         document.getElementById('mobile-btn').addEventListener('click', () => {
