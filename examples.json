@@ -48,6 +48,18 @@
             }
           ],
           "birthtimeMs": 1489102620074.4985
+        },
+        {
+          "path": "src\\game objects\\sprite gpu layer",
+          "name": "sprite gpu layer",
+          "children": [
+            {
+              "path": "src\\game objects\\sprite gpu layer\\layer-lighting.js",
+              "name": "layer-lighting.js",
+              "birthtimeMs": 1748011839073.01
+            }
+          ],
+          "birthtimeMs": 1748011839071.5017
         }
       ],
       "birthtimeMs": 1484826517226.2756
