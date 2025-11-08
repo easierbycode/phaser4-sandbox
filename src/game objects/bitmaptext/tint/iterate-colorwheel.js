@@ -1,6 +1,3 @@
-
-import Phaser from "https://esm.sh/phaser@4.0.0-rc.5";
-
 // Settings management
 const gameSettings = {
   colorMode: 'pairing', // 'pairing' or 'complementary'
