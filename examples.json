@@ -24,6 +24,18 @@
             }
           ],
           "birthtimeMs": 1489102620074.4985
+        },
+        {
+          "path": "src\\game objects\\particle emitter",
+          "name": "particle emitter",
+          "children": [
+            {
+              "path": "src\\game objects\\particle emitter\\digital-face.js",
+              "name": "digital-face.js",
+              "birthtimeMs": 1748011838963.8174
+            }
+          ],
+          "birthtimeMs": 1489102620074.4985
         }
       ],
       "birthtimeMs": 1484826517226.2756
