@@ -354,7 +354,8 @@ class Phaser4Examples {
             'math': 'monitor.png',
             'utils': 'phaser-folder.png',
             'plugins': 'phaser-folder.png',
-            'particle emitter': 'tv.png'
+            'particle emitter': 'tv.png',
+            'lights': 'swirl.png'
         };
 
         // Check for thematic match first
