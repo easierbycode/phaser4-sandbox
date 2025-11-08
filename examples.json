@@ -72,6 +72,18 @@
             }
           ],
           "birthtimeMs": 1748011839071.5017
+        },
+        {
+          "path": "src\\game objects\\tile sprite",
+          "name": "tile sprite",
+          "children": [
+            {
+              "path": "src\\game objects\\tile sprite\\scroll-multiple.js",
+              "name": "scroll-multiple.js",
+              "birthtimeMs": 1748011839073.01
+            }
+          ],
+          "birthtimeMs": 1748011839071.5017
         }
       ],
       "birthtimeMs": 1484826517226.2756
