@@ -3,6 +3,18 @@
   "name": "src",
   "children": [
     {
+      "path": "src\\animation",
+      "name": "animation",
+      "children": [
+        {
+          "path": "src\\animation\\from-spritesheet.js",
+          "name": "from-spritesheet.js",
+          "birthtimeMs": 1748011838963.8174
+        }
+      ],
+      "birthtimeMs": 1489102620074.4985
+    },
+    {
       "path": "src\\filters",
       "name": "filters",
       "children": [
