@@ -67,7 +67,7 @@
           "children": [
             {
               "path": "src\\game objects\\lights\\particles-light.js",
-              "name": "particles-light.js",
+              "name": "particles-light",
               "birthtimeMs": 1748011838963.8174
             }
           ],
@@ -78,8 +78,13 @@
           "name": "particle emitter",
           "children": [
             {
+              "path": "src\\game objects\\particle emitter\\bitmap-zone.js",
+              "name": "bitmap zone (3.80.1)",
+              "birthtimeMs": 1748011838963.8174
+            },
+            {
               "path": "src\\game objects\\particle emitter\\digital-face.js",
-              "name": "digital-face.js",
+              "name": "digital face",
               "birthtimeMs": 1748011838963.8174
             }
           ],
@@ -91,7 +96,7 @@
           "children": [
             {
               "path": "src\\game objects\\sprite gpu layer\\layer-lighting.js",
-              "name": "layer-lighting.js",
+              "name": "layer-lighting",
               "birthtimeMs": 1748011839073.01
             }
           ],
