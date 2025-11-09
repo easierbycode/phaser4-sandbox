@@ -43,6 +43,18 @@
       "name": "game objects",
       "children": [
         {
+          "path": "src\\game objects\\atlas",
+          "name": "atlas",
+          "children": [
+            {
+              "path": "src\\game objects\\atlas\\pixel-perfect-check.js",
+              "name": "pixel-perfect-check",
+              "birthtimeMs": 1748011838963.8174
+            }
+          ],
+          "birthtimeMs": 1489102620074.4985
+        },
+        {
           "path": "src\\game objects\\bitmaptext",
           "name": "bitmaptext",
           "children": [
