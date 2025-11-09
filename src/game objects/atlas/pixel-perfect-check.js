@@ -26,7 +26,6 @@ const PAN_SPEED = 5;
 // --- Helper: Safely measures a block of solid color ---
 function measureRenderedPixelBlock(startX, startY, renderer) {
     const originColor = renderer.snapshotPixel(startX, startY);
-    // Cannot measure if the starting point is invalid (e.g., off-screen)
     if (!originColor) return { width: 0, height: 0 };
 
     let width = 1;
@@ -34,7 +33,6 @@ function measureRenderedPixelBlock(startX, startY, renderer) {
     const rendererWidth = renderer.width;
     const rendererHeight = renderer.height;
 
-    // Scan right to find width, with boundary checks
     while (startX + width < rendererWidth) {
         const nextPixelColor = renderer.snapshotPixel(startX + width, startY);
         if (nextPixelColor && nextPixelColor.r === originColor.r && nextPixelColor.g === originColor.g && nextPixelColor.b === originColor.b) {
@@ -44,7 +42,6 @@ function measureRenderedPixelBlock(startX, startY, renderer) {
         }
     }
 
-    // Scan down to find height, with boundary checks
     while (startY + height < rendererHeight) {
         const nextPixelColor = renderer.snapshotPixel(startX, startY + height);
         if (nextPixelColor && nextPixelColor.r === originColor.r && nextPixelColor.g === originColor.g && nextPixelColor.b === originColor.b) {
@@ -73,7 +70,7 @@ function create() {
         backgroundColor: 'rgba(0,0,0,0.8)'
     }).setScrollFactor(0).setDepth(100);
 
-    failedListText = this.add.text(10, 120, 'Press the "P" key to run the pixel check.', {
+    failedListText = this.add.text(10, 140, 'Press the "P" key to run the pixel check.', {
         fontSize: '14px',
         fill: '#aaccff',
         backgroundColor: 'rgba(0,0,0,0.8)',
@@ -96,10 +93,10 @@ function create() {
         const spriteY = startY + j * 100;
 
         const sprite = this.add.sprite(spriteX, spriteY, 'game_asset', frameName);
-        sprite.setTint(0xaaaaff); // Initial neutral tint
+        sprite.setTint(0xaaaaff);
         allSprites.push(sprite);
 
-        worldWidth = Math.max(worldWidth, spriteX + sprite.width * 4); // Add buffer
+        worldWidth = Math.max(worldWidth, spriteX + sprite.width * 4);
         worldHeight = Math.max(worldHeight, spriteY + sprite.height * 4);
     });
 
@@ -107,6 +104,34 @@ function create() {
     keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,P');
     this.cameras.main.setBackgroundColor('#1d1d1d');
     this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
+
+    // --- MOUSE CONTROLS SETUP ---
+    // 1. Mouse Wheel Panning (Vertical)
+    this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
+        // Adjust scrollY by the wheel's delta, scaled by zoom
+        this.cameras.main.scrollY += deltaY * 0.5 / this.cameras.main.zoom;
+    });
+
+    // 2. Drag to Pan
+    let dragStart = new Phaser.Math.Vector2(0, 0);
+    this.input.on('pointerdown', (pointer) => {
+        if (pointer.leftButtonDown()) {
+            dragStart.set(pointer.x, pointer.y);
+        }
+    });
+
+    this.input.on('pointermove', (pointer) => {
+        if (pointer.isDown && pointer.leftButtonDown()) {
+            const currentPos = new Phaser.Math.Vector2(pointer.x, pointer.y);
+            const delta = currentPos.clone().subtract(dragStart);
+
+            // Pan the camera opposite to the drag direction
+            this.cameras.main.scrollX -= delta.x / this.cameras.main.zoom;
+            this.cameras.main.scrollY -= delta.y / this.cameras.main.zoom;
+
+            dragStart.set(currentPos.x, currentPos.y);
+        }
+    });
 }
 
 function update() {
@@ -132,20 +157,19 @@ function update() {
     if (settingsChanged) {
         allSprites.forEach(sprite => {
             sprite.setScale(spriteScale);
-            // Reset tint when settings change, indicating check is needed
-            sprite.setTint(0xaaaaff); 
+            sprite.setTint(0xaaaaff);
             failedListText.setText('Settings changed. Press "P" to re-run pixel check.');
             failedListText.setFill('#aaccff');
         });
         this.cameras.main.setZoom(cameraZoom);
     }
-    
+
     // --- On-Demand Pixel Check ---
     if (Phaser.Input.Keyboard.JustDown(keys.P)) {
         performPixelPerfectCheck.call(this);
     }
-    
-    // --- Camera Panning ---
+
+    // --- Keyboard Camera Panning ---
     if (keys.W.isDown) this.cameras.main.scrollY -= PAN_SPEED / cameraZoom;
     if (keys.S.isDown) this.cameras.main.scrollY += PAN_SPEED / cameraZoom;
     if (keys.A.isDown) this.cameras.main.scrollX -= PAN_SPEED / cameraZoom;
@@ -154,10 +178,10 @@ function update() {
     // --- Update UI ---
     const totalScale = spriteScale * cameraZoom;
     uiText.setText([
-        `Use Arrow Keys to change scale/zoom.`,
-        `Use WASD Keys to pan the camera.`,
-        `Sprite Scale: ${spriteScale.toFixed(2)}`,
-        `Camera Zoom: ${cameraZoom.toFixed(2)}`,
+        `Controls:`,
+        `- Arrows: Change Scale/Zoom | WASD: Pan Camera`,
+        `- Mouse Wheel: Pan Up/Down | Click & Drag: Pan`,
+        `Sprite Scale: ${spriteScale.toFixed(2)} | Camera Zoom: ${cameraZoom.toFixed(2)}`,
         `Total Render Scale: ${totalScale.toFixed(2)}`
     ]);
 }
@@ -168,12 +192,11 @@ function performPixelPerfectCheck() {
     const renderer = this.game.renderer;
 
     allSprites.forEach(sprite => {
-        // Skip check if sprite is fully outside the camera view
         if (!this.cameras.main.worldView.contains(sprite.x, sprite.y)) {
-             sprite.setTint(0x555555); // Grey out off-screen sprites
-             return;
+            sprite.setTint(0x555555);
+            return;
         }
-        
+
         let pass = false;
         const topLeft = sprite.getTopLeft();
         const x = Math.floor(topLeft.x);
@@ -185,7 +208,6 @@ function performPixelPerfectCheck() {
             const nextX = x + firstBlock.width;
             const nextY = y + firstBlock.height;
 
-            // Check block to the right AND below for consistency
             const rightBlock = measureRenderedPixelBlock(nextX, y, renderer);
             const downBlock = measureRenderedPixelBlock(x, nextY, renderer);
 
@@ -194,11 +216,11 @@ function performPixelPerfectCheck() {
                 pass = true;
             }
         }
-        
+
         if (pass) {
-            sprite.setTint(0x00ff00); // Green
+            sprite.setTint(0x00ff00);
         } else {
-            sprite.setTint(0xff0000); // Red
+            sprite.setTint(0xff0000);
             failedSprites.push(sprite.frame.name);
         }
     });
