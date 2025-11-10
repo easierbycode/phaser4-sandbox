@@ -88,16 +88,6 @@ class Phaser4Viewer {
             this.showSourceModal();
         });
 
-        document.getElementById('settings-cog').addEventListener('click', () => {
-            const settingsMenu = document.getElementById('settings-menu');
-            settingsMenu.classList.toggle('visible');
-        });
-
-        document.getElementById('close-settings').addEventListener('click', () => {
-            const settingsMenu = document.getElementById('settings-menu');
-            settingsMenu.classList.remove('visible');
-        });
-
         // Version selector
         const versionSelect = document.getElementById('version-select');
         versionSelect.addEventListener('change', (e) => {
@@ -121,18 +111,31 @@ class Phaser4Viewer {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.hideSourceModal();
+            } else if (e.key.toLowerCase() === 'p') {
+                this.togglePixelCheck();
             }
         });
 
-        // Pixel perfect toggle
-        document.getElementById('pixel-perfect-toggle').addEventListener('change', (e) => {
-            const container = document.getElementById('phaser-example');
-            if (e.target.checked) {
-                container.classList.add('pixel-perfect');
-            } else {
-                container.classList.remove('pixel-perfect');
-            }
+        document.getElementById('pixel-perfect-toggle').addEventListener('change', () => {
+            this.togglePixelCheck();
         });
+
+        document.getElementById('settings-cog').addEventListener('click', () => {
+            const settingsMenu = document.getElementById('settings-menu');
+            settingsMenu.classList.toggle('visible');
+        });
+
+        document.getElementById('close-settings').addEventListener('click', () => {
+            const settingsMenu = document.getElementById('settings-menu');
+            settingsMenu.classList.remove('visible');
+        });
+    }
+
+    togglePixelCheck() {
+        const container = document.getElementById('phaser-example');
+        const checkbox = document.getElementById('pixel-perfect-toggle');
+        container.classList.toggle('pixel-perfect');
+        checkbox.checked = container.classList.contains('pixel-perfect');
     }
 
     initializeVersionSelector() {
