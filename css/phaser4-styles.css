@@ -463,6 +463,10 @@ html, body {
     justify-content: center;
 }
 
+.pixel-perfect .phaser-example canvas {
+    image-rendering: pixelated;
+}
+
 .loading-indicator {
     position: absolute;
     top: 50%;
