@@ -36,13 +36,35 @@ jobs:
         run: |
           npm install -g cordova@latest
 
-      - name: Verify Cordova configuration
+      - name: Setup Cordova project structure
         run: |
+          echo "Setting up Cordova project structure..."
+
+          # Check if config.xml exists
           if [ ! -f "config.xml" ]; then
             echo "ERROR: Cordova config.xml not found"
             exit 1
           fi
-          echo "Found config.xml, proceeding with Cordova setup..."
+
+          # Create www directory if it doesn't exist
+          if [ ! -d "www" ]; then
+            echo "Creating www directory and copying web content..."
+            mkdir -p www
+
+            # Copy all web content to www directory
+            cp -r css www/
+            cp -r js www/
+            cp -r images www/
+            cp -r build www/ 2>/dev/null || echo "No build directory to copy"
+            cp -r src www/
+            cp index.html www/
+            cp phaser4-view.html www/
+            cp examples.json www/
+
+            echo "Web content copied to www directory"
+          fi
+
+          echo "Cordova project structure ready"
 
       - name: Add Android platform
         run: |
