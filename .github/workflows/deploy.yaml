@@ -36,24 +36,36 @@ jobs:
         run: |
           npm install -g cordova@latest
 
-      - name: Initialize Cordova project if needed
+      - name: Verify Cordova configuration
         run: |
           if [ ! -f "config.xml" ]; then
-            echo "Cordova config.xml not found, project needs to be initialized"
+            echo "ERROR: Cordova config.xml not found"
             exit 1
           fi
+          echo "Found config.xml, proceeding with Cordova setup..."
 
       - name: Add Android platform
         run: |
-          cordova platform add android@latest || echo "Android platform already added"
+          echo "Adding Android platform..."
+          cordova platform add android@latest
+          echo "Android platform added successfully"
 
       - name: Install Cordova plugins
         run: |
-          cordova plugin add cordova-plugin-file
-          cordova plugin add cordova-plugin-file-transfer
-          cordova plugin add cordova-plugin-network-information
-          cordova plugin add cordova-plugin-inappbrowser
-          cordova plugin add cordova-plugin-device
+          echo "Installing Cordova plugins..."
+          cordova plugin add cordova-plugin-file || echo "File plugin already installed"
+          cordova plugin add cordova-plugin-file-transfer || echo "File transfer plugin already installed"
+          cordova plugin add cordova-plugin-network-information || echo "Network info plugin already installed"
+          cordova plugin add cordova-plugin-inappbrowser || echo "InAppBrowser plugin already installed"
+          cordova plugin add cordova-plugin-device || echo "Device plugin already installed"
+          cordova plugin add cordova-plugin-whitelist || echo "Whitelist plugin already installed"
+          echo "Plugins installation complete"
+
+      - name: Prepare Cordova project
+        run: |
+          echo "Preparing Cordova project..."
+          cordova prepare android
+          echo "Cordova project prepared successfully"
 
       - name: Build Android APK
         run: |
