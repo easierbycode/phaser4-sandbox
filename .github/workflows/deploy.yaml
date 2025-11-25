@@ -69,7 +69,7 @@ jobs:
       - name: Add Android platform
         run: |
           echo "Adding Android platform..."
-          cordova platform add android@latest
+          cordova platform add android@12.0.1
           echo "Android platform added successfully"
 
       - name: Install Cordova plugins
