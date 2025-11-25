@@ -61,26 +61,36 @@ jobs:
         env:
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
-      - name: Sign APK (if keystore available)
-        if: secrets.ANDROID_KEYSTORE_BASE64 != ''
+      - name: Sign APK (optional)
+        continue-on-error: true
         run: |
-          # Decode keystore from base64
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+          # Check if keystore secret is available
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "Signing APK with provided keystore..."
 
-          # Find the unsigned APK
-          APK_PATH=$(find platforms/android/app/build/outputs/apk/release -name "*.apk" | head -1)
+            # Decode keystore from base64
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > release.keystore
 
-          # Sign the APK
-          $ANDROID_SDK_ROOT/build-tools/*/apksigner sign \
-            --ks release.keystore \
-            --ks-key-alias ${{ secrets.ANDROID_KEY_ALIAS }} \
-            --ks-pass pass:${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
-            --key-pass pass:${{ secrets.ANDROID_KEY_PASSWORD }} \
-            --out platforms/android/app/build/outputs/apk/release/app-release-signed.apk \
-            $APK_PATH
+            # Find the unsigned APK
+            APK_PATH=$(find platforms/android/app/build/outputs/apk/release -name "*.apk" | head -1)
 
-          # Clean up keystore
-          rm release.keystore
+            # Sign the APK
+            $ANDROID_SDK_ROOT/build-tools/*/apksigner sign \
+              --ks release.keystore \
+              --ks-key-alias ${{ secrets.ANDROID_KEY_ALIAS }} \
+              --ks-pass pass:${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
+              --key-pass pass:${{ secrets.ANDROID_KEY_PASSWORD }} \
+              --out platforms/android/app/build/outputs/apk/release/app-release-signed.apk \
+              $APK_PATH
+
+            # Clean up keystore
+            rm release.keystore
+
+            echo "APK signed successfully"
+          else
+            echo "Keystore secrets not configured - skipping APK signing"
+            echo "The unsigned APK can still be used for testing"
+          fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
