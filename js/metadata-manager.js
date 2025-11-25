@@ -21,6 +21,12 @@ class MetadataManager {
                 return this.metadata;
             }
 
+            // Check for pre-loaded data for Cordova
+            if (window.EXAMPLES_DATA) {
+                this.metadata = window.EXAMPLES_DATA;
+                return this.metadata;
+            }
+
             // Fall back to examples.json
             const response = await fetch('examples.json');
             this.metadata = await response.json();
