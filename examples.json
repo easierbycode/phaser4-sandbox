@@ -3,11 +3,11 @@
   "name": "src",
   "children": [
     {
-      "path": "src\\animation",
+      "path": "src/animation",
       "name": "animation",
       "children": [
         {
-          "path": "src\\animation\\from-spritesheet.js",
+          "path": "src/animation/from-spritesheet.js",
           "name": "from-spritesheet.js",
           "birthtimeMs": 1748011838963.8174
         }
@@ -15,11 +15,11 @@
       "birthtimeMs": 1489102620074.4985
     },
     {
-      "path": "src\\database",
+      "path": "src/database",
       "name": "database",
       "children": [
         {
-          "path": "src\\database\\csv-load.js",
+          "path": "src/database/csv-load.js",
           "name": "csv load",
           "birthtimeMs": 1748011838963.8174
         }
@@ -27,11 +27,11 @@
       "birthtimeMs": 1489102620074.4985
     },
     {
-      "path": "src\\filters",
+      "path": "src/filters",
       "name": "filters",
       "children": [
         {
-          "path": "src\\filters\\shadow.js",
+          "path": "src/filters/shadow.js",
           "name": "shadow",
           "birthtimeMs": 1748011838963.8174
         }
@@ -39,15 +39,15 @@
       "birthtimeMs": 1489102620074.4985
     },
     {
-      "path": "src\\game objects",
+      "path": "src/game objects",
       "name": "game objects",
       "children": [
         {
-          "path": "src\\game objects\\atlas",
+          "path": "src/game objects/atlas",
           "name": "atlas",
           "children": [
             {
-              "path": "src\\game objects\\atlas\\pixel-perfect-check.js",
+              "path": "src/game objects/atlas/pixel-perfect-check.js",
               "name": "pixel-perfect-check",
               "birthtimeMs": 1748011838963.8174
             }
@@ -55,15 +55,15 @@
           "birthtimeMs": 1489102620074.4985
         },
         {
-          "path": "src\\game objects\\bitmaptext",
+          "path": "src/game objects/bitmaptext",
           "name": "bitmaptext",
           "children": [
             {
-              "path": "src\\game objects\\bitmaptext\\tint",
+              "path": "src/game objects/bitmaptext/tint",
               "name": "tint",
               "children": [
                 {
-                  "path": "src\\game objects\\bitmaptext\\tint\\iterate-colorwheel.js",
+                  "path": "src/game objects/bitmaptext/tint/iterate-colorwheel.js",
                   "name": "iterate-colorwheel.js",
                   "birthtimeMs": 1748011838963.8174
                 }
@@ -74,11 +74,11 @@
           "birthtimeMs": 1489102620074.4985
         },
         {
-          "path": "src\\game objects\\lights",
+          "path": "src/game objects/lights",
           "name": "lights",
           "children": [
             {
-              "path": "src\\game objects\\lights\\particles-light.js",
+              "path": "src/game objects/lights/particles-light.js",
               "name": "particles-light",
               "birthtimeMs": 1748011838963.8174
             }
@@ -86,16 +86,16 @@
           "birthtimeMs": 1489102620074.4985
         },
         {
-          "path": "src\\game objects\\particle emitter",
+          "path": "src/game objects/particle emitter",
           "name": "particle emitter",
           "children": [
             {
-              "path": "src\\game objects\\particle emitter\\bitmap-zone.js",
+              "path": "src/game objects/particle emitter/bitmap-zone.js",
               "name": "bitmap zone (3.80.1)",
               "birthtimeMs": 1748011838963.8174
             },
             {
-              "path": "src\\game objects\\particle emitter\\digital-face.js",
+              "path": "src/game objects/particle emitter/digital-face.js",
               "name": "digital face",
               "birthtimeMs": 1748011838963.8174
             }
@@ -103,11 +103,11 @@
           "birthtimeMs": 1489102620074.4985
         },
         {
-          "path": "src\\game objects\\sprite gpu layer",
+          "path": "src/game objects/sprite gpu layer",
           "name": "sprite gpu layer",
           "children": [
             {
-              "path": "src\\game objects\\sprite gpu layer\\layer-lighting.js",
+              "path": "src/game objects/sprite gpu layer/layer-lighting.js",
               "name": "layer-lighting",
               "birthtimeMs": 1748011839073.01
             }
@@ -115,11 +115,11 @@
           "birthtimeMs": 1748011839071.5017
         },
         {
-          "path": "src\\game objects\\tile sprite",
+          "path": "src/game objects/tile sprite",
           "name": "tile sprite",
           "children": [
             {
-              "path": "src\\game objects\\tile sprite\\scroll-multiple.js",
+              "path": "src/game objects/tile sprite/scroll-multiple.js",
               "name": "scroll-multiple.js",
               "birthtimeMs": 1748011839073.01
             }

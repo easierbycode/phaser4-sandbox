@@ -70,7 +70,16 @@ To build the APK locally:
 
 ### Build Steps
 
-1. **Initialize Cordova** (if not already done):
+1. **Generate `examples-data.js`**
+
+   The Cordova app relies on a JavaScript file (`js/examples-data.js`) that contains the examples metadata. You need to generate this file before building the APK.
+
+   Run this command in your terminal:
+   ```bash
+   node -e "const fs = require('fs'); const data = fs.readFileSync('examples.json', 'utf8'); fs.writeFileSync('js/examples-data.js', 'window.EXAMPLES_DATA = ' + data + ';');"
+   ```
+
+2. **Initialize Cordova** (if not already done):
    ```bash
    cordova platform add android
    ```
