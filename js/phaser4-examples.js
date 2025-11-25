@@ -31,11 +31,16 @@ class Phaser4Examples {
 
     async loadExamplesData() {
         try {
-            const response = await fetch('examples.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            // Use metadata manager if available, otherwise fall back to fetch
+            if (window.metadataManager) {
+                this.examplesData = await window.metadataManager.loadMetadata();
+            } else {
+                const response = await fetch('examples.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                this.examplesData = await response.json();
             }
-            this.examplesData = await response.json();
         } catch (error) {
             throw new Error('Failed to load examples.json: ' + error.message);
         }
@@ -65,6 +70,14 @@ class Phaser4Examples {
             this.initializeFromURL();
             this.renderCategoryTree();
             this.renderExamples();
+        });
+
+        // Handle metadata updates (when files are added/removed)
+        window.addEventListener('metadata-updated', async () => {
+            await this.loadExamplesData();
+            this.renderCategoryTree();
+            this.renderExamples();
+            this.updateBreadcrumb();
         });
     }
 

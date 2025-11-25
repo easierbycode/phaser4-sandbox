@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.phaser.sandbox" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Phaser 4 Sandbox</name>
+    <description>
+        A Phaser 4 examples sandbox with dynamic file loading and management capabilities.
+    </description>
+    <author email="dev@phaser.io" href="https://phaser.io">
+        Phaser Team
+    </author>
+
+    <content src="index.html" />
+
+    <!-- Allow navigation to external resources -->
+    <allow-navigation href="*" />
+
+    <!-- Allow access to all domains -->
+    <access origin="*" />
+
+    <!-- Allow intent for all URLs -->
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+
+    <!-- Platform-specific preferences -->
+    <platform name="android">
+        <allow-intent href="market:*" />
+
+        <!-- Android permissions for file operations -->
+        <config-file target="AndroidManifest.xml" parent="/*" xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+            <!-- Android 13+ granular media permissions -->
+            <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+            <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+            <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+        </config-file>
+
+        <!-- Enable clear text traffic for development -->
+        <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest/application" xmlns:android="http://schemas.android.com/apk/res/android">
+            <application android:usesCleartextTraffic="true" />
+        </edit-config>
+
+        <!-- Android build configuration -->
+        <preference name="android-minSdkVersion" value="24" />
+        <preference name="android-targetSdkVersion" value="34" />
+        <preference name="android-compileSdkVersion" value="34" />
+
+        <!-- WebView settings -->
+        <preference name="AndroidInsecureFileModeEnabled" value="true" />
+    </platform>
+
+    <!-- iOS platform -->
+    <platform name="ios">
+        <allow-intent href="itms:*" />
+        <allow-intent href="itms-apps:*" />
+
+        <!-- iOS permissions -->
+        <edit-config target="NSPhotoLibraryUsageDescription" file="*-Info.plist" mode="merge">
+            <string>This app needs access to photos to load game assets.</string>
+        </edit-config>
+        <edit-config target="NSPhotoLibraryAddUsageDescription" file="*-Info.plist" mode="merge">
+            <string>This app needs access to save game assets.</string>
+        </edit-config>
+        <edit-config target="NSCameraUsageDescription" file="*-Info.plist" mode="merge">
+            <string>This app needs access to camera to capture game assets.</string>
+        </edit-config>
+    </platform>
+
+    <!-- General preferences -->
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="BackgroundColor" value="0xff000000" />
+    <preference name="HideKeyboardFormAccessoryBar" value="true" />
+    <preference name="Orientation" value="default" />
+    <preference name="Fullscreen" value="false" />
+
+    <!-- WebView preferences -->
+    <preference name="webviewbounce" value="false" />
+    <preference name="UIWebViewBounce" value="false" />
+    <preference name="AllowInlineMediaPlayback" value="true" />
+    <preference name="MediaPlaybackRequiresUserAction" value="false" />
+
+    <!-- Plugins -->
+    <!-- File system access plugin -->
+    <plugin name="cordova-plugin-file" spec="^8.0.0">
+        <variable name="ANDROID_EXTRA_FILESYSTEMS" value="files,files-external,documents,sdcard,cache,cache-external,assets,root" />
+    </plugin>
+
+    <!-- File transfer plugin for downloads -->
+    <plugin name="cordova-plugin-file-transfer" spec="^2.0.0" />
+
+    <!-- Network information -->
+    <plugin name="cordova-plugin-network-information" spec="^3.0.0" />
+
+    <!-- InAppBrowser for opening URLs -->
+    <plugin name="cordova-plugin-inappbrowser" spec="^6.0.0" />
+
+    <!-- Device information -->
+    <plugin name="cordova-plugin-device" spec="^3.0.0" />
+
+    <!-- Whitelist plugin -->
+    <plugin name="cordova-plugin-whitelist" spec="^1.3.5" />
+</widget>

@@ -1,0 +1,219 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - claude/**
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android build-tools 33.0.2
+        run: |
+          echo "Installing Android build-tools 33.0.2..."
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2"
+          echo "Build-tools installed successfully"
+
+      - name: Install Gradle 7.6
+        run: |
+          wget https://services.gradle.org/distributions/gradle-7.6-bin.zip
+          unzip -q gradle-7.6-bin.zip
+          sudo mv gradle-7.6 /opt/gradle
+          echo "/opt/gradle/bin" >> $GITHUB_PATH
+
+      - name: Verify Gradle version
+        run: |
+          export PATH="/opt/gradle/bin:$PATH"
+          gradle --version
+
+      - name: Install Cordova
+        run: |
+          npm install -g cordova@latest
+
+      - name: Setup Cordova project structure
+        run: |
+          echo "Setting up Cordova project structure..."
+
+          # Check if config.xml exists
+          if [ ! -f "config.xml" ]; then
+            echo "ERROR: Cordova config.xml not found"
+            exit 1
+          fi
+
+          # Create www directory if it doesn't exist
+          if [ ! -d "www" ]; then
+            echo "Creating www directory and copying web content..."
+            mkdir -p www
+
+            # Copy all web content to www directory
+            cp -r css www/
+            cp -r js www/
+            cp -r images www/
+            cp -r build www/ 2>/dev/null || echo "No build directory to copy"
+            cp -r src www/
+            cp index.html www/
+            cp phaser4-view.html www/
+            cp examples.json www/
+
+            echo "Web content copied to www directory"
+          fi
+
+          echo "Cordova project structure ready"
+
+      - name: Add Android platform
+        run: |
+          echo "Adding Android platform..."
+          cordova platform add android@12.0.1
+          echo "Android platform added successfully"
+
+      - name: Install Cordova plugins
+        run: |
+          echo "Installing Cordova plugins..."
+          cordova plugin add cordova-plugin-file || echo "File plugin already installed"
+          cordova plugin add cordova-plugin-file-transfer || echo "File transfer plugin already installed"
+          cordova plugin add cordova-plugin-network-information || echo "Network info plugin already installed"
+          cordova plugin add cordova-plugin-inappbrowser || echo "InAppBrowser plugin already installed"
+          cordova plugin add cordova-plugin-device || echo "Device plugin already installed"
+          cordova plugin add cordova-plugin-whitelist || echo "Whitelist plugin already installed"
+          echo "Plugins installation complete"
+
+      - name: Prepare Cordova project
+        run: |
+          echo "Preparing Cordova project..."
+          cordova prepare android
+          echo "Cordova project prepared successfully"
+
+      - name: Configure Android build
+        run: |
+          echo "Configuring Android Gradle build..."
+
+          # Add Gradle properties to fix resource compilation issues
+          mkdir -p platforms/android/app
+          cat > platforms/android/gradle.properties << 'EOF'
+          android.useAndroidX=true
+          android.enableJetifier=true
+          org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8
+          org.gradle.parallel=false
+          org.gradle.caching=false
+          android.nonTransitiveRClass=false
+          EOF
+
+          # Create build-extras.gradle with comprehensive error handling
+          cat > platforms/android/app/build-extras.gradle << 'EOF'
+          android {
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+
+              packagingOptions {
+                  exclude 'META-INF/DEPENDENCIES'
+                  exclude 'META-INF/LICENSE'
+                  exclude 'META-INF/LICENSE.txt'
+                  exclude 'META-INF/NOTICE'
+                  exclude 'META-INF/NOTICE.txt'
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                      shrinkResources false
+                  }
+              }
+
+              lintOptions {
+                  checkReleaseBuilds false
+                  abortOnError false
+                  disable 'InvalidPackage'
+              }
+          }
+
+          // Force specific dependency versions to avoid conflicts
+          configurations.all {
+              resolutionStrategy {
+                  force 'androidx.appcompat:appcompat:1.6.1'
+                  force 'androidx.core:core:1.9.0'
+                  force 'com.google.android.material:material:1.6.1'
+              }
+          }
+          EOF
+
+          echo "Gradle configuration files created"
+
+      - name: Build Android APK
+        run: |
+          echo "Building Android APK..."
+          cordova build android --debug --verbose -- --packageType=apk
+          echo "APK build complete"
+        env:
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+
+      - name: Sign APK (optional)
+        continue-on-error: true
+        run: |
+          # Check if keystore secret is available
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "Signing APK with provided keystore..."
+
+            # Decode keystore from base64
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+
+            # Find the unsigned APK
+            APK_PATH=$(find platforms/android/app/build/outputs/apk/release -name "*.apk" | head -1)
+
+            # Sign the APK
+            $ANDROID_SDK_ROOT/build-tools/*/apksigner sign \
+              --ks release.keystore \
+              --ks-key-alias ${{ secrets.ANDROID_KEY_ALIAS }} \
+              --ks-pass pass:${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
+              --key-pass pass:${{ secrets.ANDROID_KEY_PASSWORD }} \
+              --out platforms/android/app/build/outputs/apk/release/app-release-signed.apk \
+              $APK_PATH
+
+            # Clean up keystore
+            rm release.keystore
+
+            echo "APK signed successfully"
+          else
+            echo "Keystore secrets not configured - skipping APK signing"
+            echo "The unsigned APK can still be used for testing"
+          fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phaser4-sandbox-apk
+          path: platforms/android/app/build/outputs/apk/debug/*.apk
+          retention-days: 30
+
+      - name: Create GitHub Release (on tags)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: platforms/android/app/build/outputs/apk/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
