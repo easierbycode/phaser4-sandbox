@@ -88,6 +88,18 @@ class Phaser4Viewer {
             this.showSourceModal();
         });
 
+        document.getElementById('open-local-file-btn').addEventListener('click', () => {
+            this.openLocalFile();
+        });
+
+        document.getElementById('download-url-btn').addEventListener('click', () => {
+            this.downloadFromURL();
+        });
+
+        document.getElementById('clone-repo-btn').addEventListener('click', () => {
+            this.cloneRepo();
+        });
+
         // Version selector
         const versionSelect = document.getElementById('version-select');
         versionSelect.addEventListener('change', (e) => {
@@ -111,6 +123,25 @@ class Phaser4Viewer {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.hideSourceModal();
+                this.hideUrlModal();
+                this.hideAlertModal();
+            }
+        });
+
+        // URL Modal
+        document.getElementById('close-url-modal').addEventListener('click', () => this.hideUrlModal());
+        document.getElementById('url-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'url-modal') {
+                this.hideUrlModal();
+            }
+        });
+
+        // Alert Modal
+        document.getElementById('close-alert-modal').addEventListener('click', () => this.hideAlertModal());
+        document.getElementById('alert-ok-btn').addEventListener('click', () => this.hideAlertModal());
+        document.getElementById('alert-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'alert-modal') {
+                this.hideAlertModal();
             }
         });
     }
@@ -375,6 +406,47 @@ class Phaser4Viewer {
         modal.style.display = 'none';
     }
 
+    showUrlModal(title, callback, showBranchInput = false) {
+        document.getElementById('url-modal-title').textContent = title;
+        const modal = document.getElementById('url-modal');
+        modal.classList.add('visible');
+        const input = document.getElementById('url-input');
+        input.value = '';
+        input.focus();
+
+        const branchInput = document.getElementById('branch-input');
+        branchInput.style.display = showBranchInput ? 'block' : 'none';
+        branchInput.value = '';
+
+        const submitBtn = document.getElementById('url-submit-btn');
+        const submitHandler = () => {
+            const url = input.value;
+            if (url) {
+                this.hideUrlModal();
+                callback(url, branchInput.value);
+            }
+        };
+
+        submitBtn.onclick = submitHandler;
+    }
+
+    hideUrlModal() {
+        const modal = document.getElementById('url-modal');
+        modal.classList.remove('visible');
+    }
+
+    showAlert(message) {
+        document.getElementById('alert-message').textContent = message;
+        const modal = document.getElementById('alert-modal');
+        modal.classList.add('visible');
+        document.getElementById('alert-ok-btn').focus();
+    }
+
+    hideAlertModal() {
+        const modal = document.getElementById('alert-modal');
+        modal.classList.remove('visible');
+    }
+
     showError(message) {
         const exampleContainer = document.getElementById('phaser-example');
         const loadingIndicator = document.getElementById('loading');
@@ -417,6 +489,213 @@ class Phaser4Viewer {
 
         // Reload the page with the new version
         window.location.href = currentUrl.toString();
+    }
+
+    openLocalFile() {
+        const fileChooser = document.createElement('input');
+        fileChooser.type = 'file';
+        fileChooser.accept = '.js'; // Only accept JavaScript files
+        fileChooser.style.display = 'none';
+
+        fileChooser.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    const fileName = file.name;
+                    this.addFileToExamples(fileName, content);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        document.body.appendChild(fileChooser);
+        fileChooser.click();
+        document.body.removeChild(fileChooser);
+    }
+
+    async downloadFromURL() {
+        this.showUrlModal("Enter the URL of the JavaScript file to download:", async (url) => {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const content = await response.text();
+                const fileName = url.substring(url.lastIndexOf('/') + 1);
+                this.addFileToExamples(fileName, content);
+            } catch (error) {
+                console.error('Download error:', error);
+                this.showError(`Failed to download file: ${error.message}`);
+            }
+        });
+    }
+
+    async cloneRepo() {
+        this.showUrlModal("Enter the GitHub repository URL:", async (repoUrl, branch) => {
+            const branchName = branch || 'main';
+            repoUrl = repoUrl.replace('https://github.com/', 'https://codeload.github.com/') + `/zip/${branchName}`;
+
+            try {
+                const response = await fetch(repoUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const blob = await response.blob();
+                window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, (fs) => {
+                    fs.root.getFile('repo.zip', { create: true, exclusive: false }, (fileEntry) => {
+                        this.writeFile(fileEntry, blob, () => {
+                            const zipTo = fs.root.toURL() + 'examples/';
+                            window.zip.unzip(fileEntry.toURL(), zipTo, (status) => {
+                                if (status === 0) {
+                                    console.log("Unzip successful");
+                                    this.scanDirectory(zipTo);
+                                    this.showAlert('Repository cloned and unzipped successfully!');
+                                } else {
+                                    console.error("Unzip failed with status: " + status);
+                                    this.showError(`Failed to unzip repository. Status: ${status}`);
+                                }
+                            }, (progress) => {
+                                console.log('Unzip progress: ' + Math.round((progress.loaded / progress.total) * 100) + '%');
+                            });
+                        });
+                    }, (err) => {
+                        console.error("Get file error: " + err);
+                        this.showError(`Failed to get file: ${err.code}`);
+                    });
+                }, (err) => {
+                    console.error("File system error: " + err);
+                    this.showError(`Failed to access file system: ${err.code}`);
+                });
+            } catch (error) {
+                console.error('Download error:', error);
+                this.showError(`Failed to download repository: ${error.message}`);
+            }
+        }, true);
+    }
+
+    scanDirectory(directory, root) {
+        window.resolveLocalFileSystemURL(directory, (dirEntry) => {
+            const reader = dirEntry.createReader();
+            reader.readEntries((entries) => {
+                // Find the root directory of the repository
+                if (!root && entries.length > 0 && entries[0].isDirectory) {
+                    root = entries[0].name;
+                }
+
+                entries.forEach((entry) => {
+                    if (entry.isDirectory) {
+                        this.scanDirectory(entry.toURL(), root);
+                    } else if (entry.isFile && entry.name.endsWith('.js')) {
+                        const path = entry.fullPath.substring(entry.fullPath.indexOf(root) + root.length + 1);
+                        entry.file((file) => {
+                            const reader = new FileReader();
+                            reader.onloadend = (e) => {
+                                this.addFileToExamples(path, e.target.result);
+                            };
+                            reader.readAsText(file);
+                        });
+                    }
+                });
+            }, (err) => {
+                console.error("Read entries error: " + err);
+                this.showError('Failed to read directory entries.');
+            });
+        }, (err) => {
+            console.error("Resolve file system URL error: " + err);
+            this.showError('Failed to resolve directory URL.');
+        });
+    }
+
+    addFileToExamples(fileName, content) {
+        window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, (fs) => {
+            fs.root.getDirectory('examples', { create: true }, (dirEntry) => {
+                dirEntry.getFile(fileName, { create: true, exclusive: false }, (fileEntry) => {
+                    this.writeFile(fileEntry, content);
+                }, (err) => {
+                    console.error("Get file error: " + err);
+                    this.showError('Failed to get file.');
+                });
+            }, (err) => {
+                console.error("Get directory error: " + err);
+                this.showError('Failed to get directory.');
+            });
+        }, (err) => {
+            console.error("File system error: " + err);
+            this.showError('Failed to access file system.');
+        });
+    }
+
+    writeFile(fileEntry, dataObj, onComplete) {
+        fileEntry.createWriter((fileWriter) => {
+            fileWriter.onwriteend = () => {
+                console.log("Successful file write...");
+                if (onComplete) {
+                    onComplete();
+                } else {
+                    this.updateExamplesJson(fileEntry.name);
+                }
+            };
+
+            fileWriter.onerror = (e) => {
+                console.error("Failed file write: " + e.toString());
+                this.showError('Failed to write file.');
+            };
+
+            if (typeof dataObj === 'string') {
+                dataObj = new Blob([dataObj], { type: 'text/plain' });
+            }
+            fileWriter.write(dataObj);
+        });
+    }
+
+    updateExamplesJson(newFileName) {
+        const filePath = 'examples.json';
+        window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, (fs) => {
+            fs.root.getFile(filePath, { create: false }, (fileEntry) => {
+                fileEntry.file((file) => {
+                    const reader = new FileReader();
+                    reader.onloadend = (e) => {
+                        const examples = JSON.parse(e.target.result);
+                        const newExample = {
+                            path: `examples/${newFileName}`,
+                            name: newFileName,
+                            birthtimeMs: Date.now()
+                        };
+
+                        // Check if a 'downloaded' category exists, if not create it
+                        let downloadedCategory = examples.children.find(child => child.name === 'downloaded');
+                        if (!downloadedCategory) {
+                            downloadedCategory = {
+                                path: 'src/downloaded',
+                                name: 'downloaded',
+                                children: [],
+                                birthtimeMs: Date.now()
+                            };
+                            examples.children.push(downloadedCategory);
+                        }
+
+                        downloadedCategory.children.push(newExample);
+
+                        // Write the updated examples.json back to the file
+                        this.writeFile(fileEntry, JSON.stringify(examples, null, 2));
+
+                        this.showAlert(`Example ${newFileName} added successfully!`);
+                    };
+                    reader.readAsText(file);
+                }, (err) => {
+                    console.error("File read error: " + err);
+                    this.showError('Failed to read examples.json.');
+                });
+            }, (err) => {
+                console.error("Get file error: " + err);
+                this.showError('Failed to find examples.json.');
+            });
+        }, (err) => {
+            console.error("File system error: " + err);
+            this.showError('Failed to access file system.');
+        });
     }
 }
 

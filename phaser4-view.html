@@ -179,6 +179,9 @@
                 <button id="mobile-btn" class="control-btn">Mobile</button>
                 <button id="edit-btn" class="control-btn">Edit</button>
                 <button id="source-btn" class="control-btn">Source</button>
+                <button id="open-local-file-btn" class="control-btn">Open Local File</button>
+                <button id="download-url-btn" class="control-btn">Download URL</button>
+                <button id="clone-repo-btn" class="control-btn">Clone Repo</button>
                 <button id="settings-cog">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                         <path
@@ -238,6 +241,35 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="js/phaser4-viewer.js"></script>
+
+    <!-- URL Input Modal -->
+    <div id="url-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="url-modal-title"></h2>
+                <button class="close-modal" id="close-url-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="url-input" class="search-input" placeholder="Enter URL...">
+                <input type="text" id="branch-input" class="search-input" placeholder="Enter branch (optional)">
+                <button id="url-submit-btn" class="control-btn">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alert-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Alert</h2>
+                <button class="close-modal" id="close-alert-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="alert-message"></p>
+                <button id="alert-ok-btn" class="control-btn">OK</button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

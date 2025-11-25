@@ -543,6 +543,10 @@ html, body {
     z-index: 2000;
 }
 
+.modal.visible {
+    display: block;
+}
+
 .modal-content {
     position: absolute;
     top: 50%;
