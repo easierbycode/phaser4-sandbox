@@ -32,6 +32,12 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install Android build-tools 33.0.2
+        run: |
+          echo "Installing Android build-tools 33.0.2..."
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2"
+          echo "Build-tools installed successfully"
+
       - name: Install Gradle 7.6
         run: |
           wget https://services.gradle.org/distributions/gradle-7.6-bin.zip
