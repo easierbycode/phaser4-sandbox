@@ -22,13 +22,81 @@ class MetadataManager {
             }
 
             // Fall back to examples.json
-            const response = await fetch('examples.json');
-            this.metadata = await response.json();
-            return this.metadata;
+            // Check if running in Cordova
+            if (typeof cordova !== 'undefined') {
+                // Wait for Cordova to be ready
+                await this.waitForCordova();
+
+                // In Cordova, load from application directory
+                const examplesPath = cordova.file.applicationDirectory + 'www/examples.json';
+                console.log('Loading examples.json from Cordova path:', examplesPath);
+
+                const content = await this.readCordovaFile(examplesPath);
+                this.metadata = JSON.parse(content);
+                return this.metadata;
+            } else {
+                // In web browser, use fetch
+                const response = await fetch('examples.json');
+                this.metadata = await response.json();
+                return this.metadata;
+            }
         } catch (error) {
             console.error('Failed to load metadata:', error);
             throw error;
         }
+    }
+
+    /**
+     * Wait for Cordova to be ready
+     */
+    waitForCordova() {
+        return new Promise((resolve) => {
+            if (window.cordova) {
+                if (document.readyState === 'complete' || window.cordova.version) {
+                    // Cordova is already ready
+                    resolve();
+                } else {
+                    document.addEventListener('deviceready', resolve, false);
+                }
+            } else {
+                resolve();
+            }
+        });
+    }
+
+    /**
+     * Read a file using Cordova File API
+     * @param {string} filePath - The full file path
+     * @returns {Promise<string>} - The file contents
+     */
+    readCordovaFile(filePath) {
+        return new Promise((resolve, reject) => {
+            window.resolveLocalFileSystemURL(filePath,
+                (fileEntry) => {
+                    fileEntry.file(
+                        (file) => {
+                            const reader = new FileReader();
+                            reader.onloadend = function() {
+                                resolve(this.result);
+                            };
+                            reader.onerror = (error) => {
+                                console.error('FileReader error:', error);
+                                reject(error);
+                            };
+                            reader.readAsText(file);
+                        },
+                        (error) => {
+                            console.error('fileEntry.file error:', error);
+                            reject(error);
+                        }
+                    );
+                },
+                (error) => {
+                    console.error('resolveLocalFileSystemURL error:', error);
+                    reject(error);
+                }
+            );
+        });
     }
 
     /**
@@ -322,8 +390,18 @@ class MetadataManager {
      */
     async resetMetadata() {
         localStorage.removeItem(this.localStorageKey);
-        const response = await fetch('examples.json');
-        this.metadata = await response.json();
+
+        // Load fresh metadata using the same method as loadMetadata
+        if (typeof cordova !== 'undefined') {
+            await this.waitForCordova();
+            const examplesPath = cordova.file.applicationDirectory + 'www/examples.json';
+            const content = await this.readCordovaFile(examplesPath);
+            this.metadata = JSON.parse(content);
+        } else {
+            const response = await fetch('examples.json');
+            this.metadata = await response.json();
+        }
+
         window.dispatchEvent(new CustomEvent('metadata-updated', {
             detail: { reset: true }
         }));
