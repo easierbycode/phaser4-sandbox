@@ -89,9 +89,28 @@ jobs:
           cordova prepare android
           echo "Cordova project prepared successfully"
 
+      - name: Configure Android build
+        run: |
+          echo "Configuring Android Gradle build..."
+
+          # Add Gradle properties to fix resource compilation issues
+          mkdir -p platforms/android
+          cat > platforms/android/gradle.properties << 'EOF'
+          android.useAndroidX=true
+          android.enableJetifier=true
+          org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m
+          org.gradle.parallel=true
+          org.gradle.caching=true
+          android.nonTransitiveRClass=false
+          EOF
+
+          echo "Gradle properties configured"
+
       - name: Build Android APK
         run: |
-          cordova build android --release
+          echo "Building Android APK..."
+          cordova build android --release -- --packageType=apk
+          echo "APK build complete"
         env:
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
