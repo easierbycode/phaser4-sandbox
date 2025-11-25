@@ -167,7 +167,7 @@ jobs:
       - name: Build Android APK
         run: |
           echo "Building Android APK..."
-          cordova build android --release --verbose -- --packageType=apk --stacktrace
+          cordova build android --debug --verbose -- --packageType=apk
           echo "APK build complete"
         env:
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
