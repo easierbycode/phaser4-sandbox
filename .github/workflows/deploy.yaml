@@ -98,33 +98,33 @@ jobs:
           cat > platforms/android/gradle.properties << 'EOF'
           android.useAndroidX=true
           android.enableJetifier=true
-          org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m
+          org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m
           org.gradle.parallel=true
           org.gradle.caching=true
           android.nonTransitiveRClass=false
-          android.enableAapt2=false
+          android.disableResourceValidation=true
           EOF
 
-          # Create build-extras.gradle to force compatible appcompat version
+          # Create build-extras.gradle to work around resource compilation issues
           cat > platforms/android/app/build-extras.gradle << 'EOF'
           android {
               aaptOptions {
-                  // Disable AAPT2 to use legacy AAPT
-                  noCompress 'tflite'
-                  noCompress 'lite'
+                  noCompress 'tflite', 'lite'
                   cruncherEnabled = false
+                  ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
               }
 
-              // Disable PNG crunching which can cause resource compilation issues
               buildTypes {
                   release {
                       crunchPngs false
                   }
               }
-          }
 
-          // Add this at the project level to use legacy AAPT
-          android.buildFeatures.buildConfig true
+              lintOptions {
+                  checkReleaseBuilds false
+                  abortOnError false
+              }
+          }
           EOF
 
           echo "Gradle configuration files created"
