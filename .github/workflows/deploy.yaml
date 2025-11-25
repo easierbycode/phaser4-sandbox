@@ -32,6 +32,18 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install Gradle 7.6
+        run: |
+          wget https://services.gradle.org/distributions/gradle-7.6-bin.zip
+          unzip -q gradle-7.6-bin.zip
+          sudo mv gradle-7.6 /opt/gradle
+          echo "/opt/gradle/bin" >> $GITHUB_PATH
+
+      - name: Verify Gradle version
+        run: |
+          export PATH="/opt/gradle/bin:$PATH"
+          gradle --version
+
       - name: Install Cordova
         run: |
           npm install -g cordova@latest
