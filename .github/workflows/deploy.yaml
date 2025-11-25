@@ -102,22 +102,29 @@ jobs:
           org.gradle.parallel=true
           org.gradle.caching=true
           android.nonTransitiveRClass=false
+          android.enableAapt2=false
           EOF
 
           # Create build-extras.gradle to force compatible appcompat version
           cat > platforms/android/app/build-extras.gradle << 'EOF'
-          configurations.all {
-              resolutionStrategy {
-                  force 'androidx.appcompat:appcompat:1.6.1'
-                  force 'androidx.core:core:1.12.0'
+          android {
+              aaptOptions {
+                  // Disable AAPT2 to use legacy AAPT
+                  noCompress 'tflite'
+                  noCompress 'lite'
+                  cruncherEnabled = false
+              }
+
+              // Disable PNG crunching which can cause resource compilation issues
+              buildTypes {
+                  release {
+                      crunchPngs false
+                  }
               }
           }
 
-          android {
-              aaptOptions {
-                  ignoreAssetsPattern '!.svn:!.git:.*:!CVS:!thumbs.db:!picasa.ini:!*.scc:*~'
-              }
-          }
+          // Add this at the project level to use legacy AAPT
+          android.buildFeatures.buildConfig true
           EOF
 
           echo "Gradle configuration files created"
