@@ -94,35 +94,52 @@ jobs:
           echo "Configuring Android Gradle build..."
 
           # Add Gradle properties to fix resource compilation issues
-          mkdir -p platforms/android
+          mkdir -p platforms/android/app
           cat > platforms/android/gradle.properties << 'EOF'
           android.useAndroidX=true
           android.enableJetifier=true
-          org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m
-          org.gradle.parallel=true
-          org.gradle.caching=true
+          org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8
+          org.gradle.parallel=false
+          org.gradle.caching=false
           android.nonTransitiveRClass=false
-          android.disableResourceValidation=true
           EOF
 
-          # Create build-extras.gradle to work around resource compilation issues
+          # Create build-extras.gradle with comprehensive error handling
           cat > platforms/android/app/build-extras.gradle << 'EOF'
           android {
-              aaptOptions {
-                  noCompress 'tflite', 'lite'
-                  cruncherEnabled = false
-                  ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+
+              packagingOptions {
+                  exclude 'META-INF/DEPENDENCIES'
+                  exclude 'META-INF/LICENSE'
+                  exclude 'META-INF/LICENSE.txt'
+                  exclude 'META-INF/NOTICE'
+                  exclude 'META-INF/NOTICE.txt'
               }
 
               buildTypes {
                   release {
-                      crunchPngs false
+                      minifyEnabled false
+                      shrinkResources false
                   }
               }
 
               lintOptions {
                   checkReleaseBuilds false
                   abortOnError false
+                  disable 'InvalidPackage'
+              }
+          }
+
+          // Force specific dependency versions to avoid conflicts
+          configurations.all {
+              resolutionStrategy {
+                  force 'androidx.appcompat:appcompat:1.6.1'
+                  force 'androidx.core:core:1.9.0'
+                  force 'com.google.android.material:material:1.6.1'
               }
           }
           EOF
