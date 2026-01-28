@@ -3,7 +3,7 @@ import Phaser from 'https://esm.sh/phaser@4.0.0-rc.5';
 // Import PapaParse (ES module build)
 import Papa from "https://esm.sh/papaparse@5.4.1";
 // Import localspace (modern storage library)
-import localspace from "https://esm.sh/localspace@1.0.6";
+import localspace from "https://esm.sh/localspace@1.0.1";
 
 
 class Demo extends Phaser.Scene {
