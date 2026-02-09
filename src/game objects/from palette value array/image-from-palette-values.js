@@ -4,6 +4,67 @@ class ImageFromPaletteValues extends Phaser.Scene
     {
         const pixelWidth = 6;
         const pixelHeight = 6;
+        const palette = {
+            0: '#1b1b1b',
+            1: '#ffffff',
+            2: '#ef476f',
+            3: '#06d6a0',
+            4: '#118ab2',
+            5: '#ffd166',
+            6: '#073b4c',
+            7: '#f15bb5',
+            8: '#8ecae6',
+            9: '#ffb703',
+            A: '#fb8500',
+            B: '#8338ec',
+            C: '#3a86ff',
+            D: '#ff006e',
+            E: '#ffbe0b',
+            F: '#ff7d00'
+        };
+
+        const createFromPalette = (key, data) =>
+        {
+            const width = data[0].length * pixelWidth;
+            const height = data.length * pixelHeight;
+            const canvasTexture = this.textures.createCanvas(key, width, height);
+
+            if (!canvasTexture)
+            {
+                return null;
+            }
+
+            const ctx = canvasTexture.context;
+
+            ctx.clearRect(0, 0, width, height);
+
+            data.forEach((row, y) =>
+            {
+                for (let x = 0; x < row.length; x++)
+                {
+                    const value = row[x];
+
+                    if (value === '.')
+                    {
+                        continue;
+                    }
+
+                    const color = palette[value];
+
+                    if (!color)
+                    {
+                        continue;
+                    }
+
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x * pixelWidth, y * pixelHeight, pixelWidth, pixelHeight);
+                }
+            });
+
+            canvasTexture.refresh();
+
+            return canvasTexture;
+        };
 
         const chick = [
             '...55.......',
@@ -22,7 +83,7 @@ class ImageFromPaletteValues extends Phaser.Scene
             '.4........4.'
         ];
 
-        this.textures.generate('chick', { data: chick, pixelWidth: pixelWidth });
+        createFromPalette('chick', chick);
 
         const burd = [
             '..E.............',
@@ -41,7 +102,7 @@ class ImageFromPaletteValues extends Phaser.Scene
             '..77......66....'
         ];
 
-        this.textures.generate('burd', { data: burd, pixelWidth: pixelWidth });
+        createFromPalette('burd', burd);
 
         const alien = [
             '....44........',
@@ -62,7 +123,7 @@ class ImageFromPaletteValues extends Phaser.Scene
             '.5AAAAAAAAAA5.'
         ];
 
-        this.textures.generate('alien', { data: alien, pixelWidth: pixelWidth });
+        createFromPalette('alien', alien);
 
         const ufo = [
             '....DDDDDDDD....',
@@ -82,7 +143,7 @@ class ImageFromPaletteValues extends Phaser.Scene
             '.66....66....66.'
         ];
 
-        this.textures.generate('ufo', { data: ufo, pixelWidth: pixelWidth });
+        createFromPalette('ufo', ufo);
 
         const star = [
             '.....828.....',
@@ -99,7 +160,7 @@ class ImageFromPaletteValues extends Phaser.Scene
             '.787.....787.'
         ];
 
-        this.textures.generate('star', { data: star, pixelWidth: pixelWidth });
+        createFromPalette('star', star);
 
         const ship = [
             '.....DEEEEEED...',
@@ -120,7 +181,7 @@ class ImageFromPaletteValues extends Phaser.Scene
             '...333..........'
         ];
 
-        this.textures.generate('ship', { data: ship, pixelWidth: pixelWidth });
+        createFromPalette('ship', ship);
 
         const cat = [
             '....443...443.',
@@ -140,7 +201,7 @@ class ImageFromPaletteValues extends Phaser.Scene
             '4433...4433.33'
         ];
 
-        this.textures.generate('cat', { data: cat, pixelWidth: pixelWidth });
+        createFromPalette('cat', cat);
 
         const joypad = [
             '........65....5.',
@@ -161,7 +222,7 @@ class ImageFromPaletteValues extends Phaser.Scene
             '..111......111..'
         ];
 
-        this.textures.generate('joypad', { data: joypad, pixelWidth: pixelWidth });
+        createFromPalette('joypad', joypad);
 
         const joystick = [
             '..............',
@@ -183,7 +244,7 @@ class ImageFromPaletteValues extends Phaser.Scene
             '.555......555.'
         ];
 
-        this.textures.generate('joystick', { data: joystick, pixelWidth: pixelWidth });
+        createFromPalette('joystick', joystick);
 
         this.add.image(150, 200, 'chick').setOrigin(0, 1);
         this.add.image(350, 200, 'burd').setOrigin(0, 1);
