@@ -151,6 +151,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <script src="js/versions.js"></script>
     <script src="js/getQueryString.js"></script>
+    <script src="js/examples-data.js"></script>
+    <script src="js/metadata-manager.js"></script>
 </head>
 
 <body class="viewer-page">
@@ -161,9 +163,9 @@
             </button>
             <img src="images/phaser4logo.png" alt="Phaser 4" class="logo">
             <h1 id="example-title" class="example-title">Loading...</h1>
-            <a href="https://beam.game" target="_blank" class="beam-logo-link">
+            <div class="beam-logo-container">
                 <img src="images/phaserbeamlogo.png" alt="Phaser Beam" class="beam-logo">
-            </a>
+            </div>
         </div>
     </header>
 
@@ -176,8 +178,6 @@
         <div class="viewer-controls">
             <div class="control-buttons">
                 <button id="fullscreen-btn" class="control-btn">100%</button>
-                <button id="mobile-btn" class="control-btn">Mobile</button>
-                <button id="edit-btn" class="control-btn">Edit</button>
                 <button id="source-btn" class="control-btn">Source</button>
                 <button id="settings-cog">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
