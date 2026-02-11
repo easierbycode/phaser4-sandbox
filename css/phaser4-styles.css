@@ -1,43 +1,31 @@
 @font-face {
     font-family: 'Orbitron';
-    src: url('fonts/orbitron-light.eot');
-    src: url('fonts/orbitron-light.eot?#iefix') format('embedded-opentype'),
-         url('fonts/orbitron-light.woff') format('woff'),
-         url('fonts/orbitron-light.ttf') format('truetype'),
-         url('fonts/orbitron-light.svg#orbitronlight') format('svg');
+    src: url('fonts/orbitron-light.woff2') format('woff2'),
+         url('fonts/orbitron-light.woff') format('woff');
     font-weight: 300;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'Orbitron';
-    src: url('fonts/orbitron-medium.eot');
-    src: url('fonts/orbitron-medium.eot?#iefix') format('embedded-opentype'),
-         url('fonts/orbitron-medium.woff') format('woff'),
-         url('fonts/orbitron-medium.ttf') format('truetype'),
-         url('fonts/orbitron-medium.svg#orbitronmedium') format('svg');
+    src: url('fonts/orbitron-medium.woff2') format('woff2'),
+         url('fonts/orbitron-medium.woff') format('woff');
     font-weight: 500;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'Orbitron';
-    src: url('fonts/orbitron-bold.eot');
-    src: url('fonts/orbitron-bold.eot?#iefix') format('embedded-opentype'),
-         url('fonts/orbitron-bold.woff') format('woff'),
-         url('fonts/orbitron-bold.ttf') format('truetype'),
-         url('fonts/orbitron-bold.svg#orbitronbold') format('svg');
+    src: url('fonts/orbitron-bold.woff2') format('woff2'),
+         url('fonts/orbitron-bold.woff') format('woff');
     font-weight: 700;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'Orbitron';
-    src: url('fonts/orbitron-black.eot');
-    src: url('fonts/orbitron-black.eot?#iefix') format('embedded-opentype'),
-         url('fonts/orbitron-black.woff') format('woff'),
-         url('fonts/orbitron-black.ttf') format('truetype'),
-         url('fonts/orbitron-black.svg#orbitronblack') format('svg');
+    src: url('fonts/orbitron-black.woff2') format('woff2'),
+         url('fonts/orbitron-black.woff') format('woff');
     font-weight: 900;
     font-style: normal;
 }
