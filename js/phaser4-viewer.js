@@ -51,37 +51,7 @@ class Phaser4Viewer {
 
         // Control buttons
         document.getElementById('fullscreen-btn').addEventListener('click', async () => {
-            const container = document.getElementById('phaser-example');
-            const target = container ? container.querySelector('canvas') || container : null;
-
-            if (!target) {
-                console.warn('No canvas found for fullscreen request.');
-                return;
-            }
-
-            const requestFullscreen =
-                target.requestFullscreen ||
-                target.webkitRequestFullscreen ||
-                target.msRequestFullscreen;
-
-            if (!requestFullscreen) {
-                console.warn('Fullscreen API not supported.');
-                return;
-            }
-
-            try {
-                await requestFullscreen.call(target);
-            } catch (error) {
-                console.error('Failed to enter fullscreen:', error);
-            }
-        });
-
-        document.getElementById('mobile-btn').addEventListener('click', () => {
-            this.openInMode('mobile.html');
-        });
-
-        document.getElementById('edit-btn').addEventListener('click', () => {
-            this.openInMode('edit.html');
+            this.toggleFullscreen();
         });
 
         document.getElementById('source-btn').addEventListener('click', () => {
@@ -107,12 +77,40 @@ class Phaser4Viewer {
             }
         });
 
-        // Escape key to close modal
+        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.hideSourceModal();
+            } else if (e.key.toLowerCase() === 'f') {
+                this.toggleFullscreen();
             }
         });
+    }
+
+    async toggleFullscreen() {
+        const container = document.getElementById('phaser-example');
+        const target = container ? container.querySelector('canvas') || container : null;
+
+        if (!target) {
+            console.warn('No canvas found for fullscreen request.');
+            return;
+        }
+
+        const requestFullscreen =
+            target.requestFullscreen ||
+            target.webkitRequestFullscreen ||
+            target.msRequestFullscreen;
+
+        if (!requestFullscreen) {
+            console.warn('Fullscreen API not supported.');
+            return;
+        }
+
+        try {
+            await requestFullscreen.call(target);
+        } catch (error) {
+            console.error('Failed to enter fullscreen:', error);
+        }
     }
 
     initializeVersionSelector() {
@@ -331,19 +329,26 @@ class Phaser4Viewer {
                 sourceUrl = currentBase + this.currentExample;
             }
 
-            const response = await fetch(sourceUrl);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            // Check if running in Cordova
+            if (typeof cordova !== 'undefined' && window.metadataManager) {
+                // Wait for Cordova to be ready
+                await window.metadataManager.waitForCordova();
+
+                // In Cordova, fetch doesn't work for local files. Use File API.
+                // We assume currentExample is a relative path from the root of the app
+                const absolutePath = cordova.file.applicationDirectory + 'www/' + this.currentExample;
+                console.log('Cordova loading source from:', absolutePath);
+                this.sourceCode = await window.metadataManager.readCordovaFile(absolutePath);
+            } else {
+                const response = await fetch(sourceUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                this.sourceCode = await response.text();
             }
-            this.sourceCode = await response.text();
         } catch (error) {
             throw new Error('Failed to load source code: ' + error.message);
         }
-    }
-
-    openInMode(page) {
-        const url = `${page}?src=${encodeURIComponent(this.currentExample)}&v=${encodeURIComponent(this.currentVersion)}`;
-        window.open(url, '_blank');
     }
 
     showSourceModal() {
