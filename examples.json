@@ -60,6 +60,18 @@
           "birthtimeMs": 1489102620074.4985
         },
         {
+          "path": "src/game objects/sprite blendMode",
+          "name": "sprite blendMode",
+          "children": [
+            {
+              "path": "src/game objects/sprite blendMode/shooty-bears.js",
+              "name": "shooty bears",
+              "birthtimeMs": 1748011838963.8174
+            }
+          ],
+          "birthtimeMs": 1489102620074.4985
+        },
+        {
           "path": "src/game objects/bitmaptext",
           "name": "bitmaptext",
           "children": [
