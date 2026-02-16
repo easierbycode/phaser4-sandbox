@@ -268,15 +268,13 @@ class TitleScene extends Phaser.Scene {
 
     // ---------- Fireworks Particle Emitters ----------
     // Create an emitter directly
-    this.fireworksEmitter = this.add.particles("flares", {
-      frame: ["blue", "purple", "white"], // frames from 'flares' atlas
-      x: this.scale.width * 0.5,
-      y: this.scale.height * 0.5,
+    this.fireworksEmitter = this.add.particles(0, 0, "flares", {
+      frame: ["blue", "red", "white"], // frames from 'flares' atlas
       speed: { min: 100, max: 200 },
       angle: { min: 0, max: 360 },
       lifespan: 1000,
       scale: { start: 1, end: 0 },
-      quantity: 0, // We'll emit manually
+      emitting: false,
       blendMode: "ADD",
     });
 
@@ -289,7 +287,7 @@ class TitleScene extends Phaser.Scene {
         const x = Phaser.Math.Between(0, this.scale.width);
         const y = Phaser.Math.Between(0, this.scale.height * 0.5);
         const quantity = Phaser.Math.Between(10, 20);
-        this.fireworksEmitter.emitParticleAt(x, y, quantity);
+        this.fireworksEmitter.emitParticle(quantity, x, y);
       },
     });
 
@@ -442,7 +440,7 @@ class TitleScene extends Phaser.Scene {
         PROPERTIES.score = (PROPERTIES.score || 0) + 1000;
       }
       // Particle explosion
-      this.fireworksEmitter.emitParticleAt(sprite.x, sprite.y, 20);
+      this.fireworksEmitter.emitParticle(20, sprite.x, sprite.y);
       // Tween out with a "SNES Mode7" style transform effect
       this.tweens.add({
         targets: sprite,
