@@ -528,8 +528,8 @@ this.load.image(
 var config = {
   type: Phaser.AUTO,
   parent: "phaser-example",
-  width: 800,
-  height: 600,
+  width: 256,
+  height: 480,
   physics: {
     default: "arcade",
     arcade: {
