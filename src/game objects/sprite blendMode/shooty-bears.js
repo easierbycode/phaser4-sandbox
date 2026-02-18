@@ -35,11 +35,9 @@ class TitleScene extends Phaser.Scene {
     this.load.image("lights4-purple-3", "assets/lights4-purple-3.png");
     this.load.image("lights4-purple-4", "assets/lights4-purple-4.png");
 
-    // Load the dancing bear spritesheet. 18x28 frames
-    // (Adjust the frameWidth/frameHeight if needed)
-    this.load.spritesheet("dancing-bear", "assets/dancing-bear.png", {
+    this.load.spritesheet('dancing-bear', 'assets/dancing-bear.png', {
       frameWidth: 18,
-      frameHeight: 28,
+      frameHeight: 28
     });
 
     // Additional star backgrounds for "lasers"
@@ -187,83 +185,72 @@ class TitleScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    // // Update the monkey sprite to use the atlas texture
-    // this.monkey = this.add.sprite(120, 120, 'dancing_bear_atlas').play('bearDance');
-    // this.monkey.setOrigin(0.5);
+    // // Update the dancingBear sprite to use the atlas texture
+    // this.dancingBear = this.add.sprite(120, 120, 'dancing_bear_atlas').play('bearDance');
+    // this.dancingBear.setOrigin(0.5);
 
-    if (typeof Enemy !== 'undefined' && window.evilInvadersData) {
-      let a = window.evilInvadersData.enemyData.enemyZ;
-      this.monkey = new Enemy({
-        ...a,
-        textureKey: "dancing-bear",
+    this.dancingBear = this.add.sprite(120, 120, 'dancing-bear');
+    this.dancingBear.play('bearDance');
+    this.dancingBear.setScale(4);
+    this.cameras.main.startFollow(this.dancingBear);
+
+    // ---------- Complex Dancing Bear Timeline (using GSAP) ----------
+    // Use TimelineMax to sequence various motions
+    if (typeof TimelineMax !== 'undefined') {
+      this.danceTimeline = new TimelineMax({
+        repeat: -1,
+        repeatDelay: 0.5,
+        yoyo: false,
       });
-      this.monkey.setPosition(120, 120)
-      // this.monkey.play("bearDance");
-      this.monkey.play("dancingBear\\default");
-      this.add.existing(this.monkey);
-
-      // Scale up if needed because frame is 18x28, quite small
-      this.monkey.setScale(4);
-      this.cameras.main.startFollow(this.monkey);
-
-      // ---------- Complex Dancing Bear Timeline (using GSAP) ----------
-      // Use TimelineMax to sequence various motions
-      if (typeof TimelineMax !== 'undefined') {
-        this.danceTimeline = new TimelineMax({
-          repeat: -1,
-          repeatDelay: 0.5,
-          yoyo: false,
-        });
-        this.danceTimeline
-          // Move right by 100px
-          .to(this.monkey, 1, { x: "+=100", ease: Power1.easeInOut })
-          // Then move left by 200px (100 px left of original)
-          .to(this.monkey, 1, { x: "-=75", ease: Power1.easeInOut })
-          // Small jump up + scale to simulate forward movement in Z
-          .to(this.monkey, 0.5, { y: "-=60", scale: 4.5, ease: Bounce.easeOut })
-          // Land back down
-          .to(this.monkey, 0.5, { y: "+=60", scale: 4.0, ease: Bounce.easeIn })
-          .call(
-            () => {
-              this.spawnMusicNotes();
-            },
-            null,
-            this,
-            "+=0.2"
-          )
-          // Quick rotation spin
-          .to(
-            this.monkey,
-            0.8,
-            {
-              rotation: Phaser.Math.DegToRad(360),
-              ease: Back.easeInOut.config(1.7),
-            },
-            "+=0.5"
-          )
-          // Reset rotation to 0
-          .to(this.monkey, 0.5, { rotation: 0, ease: Power0.easeNone })
-          // Random horizontal shift again
-          .to(this.monkey, 1, { x: "+=150", ease: Sine.easeInOut })
-          .to(this.monkey, 1, { x: "-=150", ease: Sine.easeInOut })
-          // Shake effect or smaller repeated moves
-          .to(this.monkey, 0.2, {
-            x: "+=10",
-            ease: Power1.easeInOut,
-            repeat: 5,
-            yoyo: true,
-          })
-          .to(this.monkey, 0.75, {
-            scaleX: -this.monkey.scaleX,
-            ease: Power2.easeInOut,
-            repeat: 1,
-            yoyo: true,
-          })
-          .to(this.monkey, 1, { alpha: 0, ease: Power1.easeInOut });
-        this.danceTimeline.eventCallback("onRepeat", () => {
-          this.monkey.alpha = 1;
-        });
-      }
+      this.danceTimeline
+        // Move right by 100px
+        .to(this.dancingBear, 1, { x: "+=100", ease: Power1.easeInOut })
+        // Then move left by 200px (100 px left of original)
+        .to(this.dancingBear, 1, { x: "-=75", ease: Power1.easeInOut })
+        // Small jump up + scale to simulate forward movement in Z
+        .to(this.dancingBear, 0.5, { y: "-=60", scale: 4.5, ease: Bounce.easeOut })
+        // Land back down
+        .to(this.dancingBear, 0.5, { y: "+=60", scale: 4.0, ease: Bounce.easeIn })
+        .call(
+          () => {
+            this.spawnMusicNotes();
+          },
+          null,
+          this,
+          "+=0.2"
+        )
+        // Quick rotation spin
+        .to(
+          this.dancingBear,
+          0.8,
+          {
+            rotation: Phaser.Math.DegToRad(360),
+            ease: Back.easeInOut.config(1.7),
+          },
+          "+=0.5"
+        )
+        // Reset rotation to 0
+        .to(this.dancingBear, 0.5, { rotation: 0, ease: Power0.easeNone })
+        // Random horizontal shift again
+        .to(this.dancingBear, 1, { x: "+=150", ease: Sine.easeInOut })
+        .to(this.dancingBear, 1, { x: "-=150", ease: Sine.easeInOut })
+        // Shake effect or smaller repeated moves
+        .to(this.dancingBear, 0.2, {
+          x: "+=10",
+          ease: Power1.easeInOut,
+          repeat: 5,
+          yoyo: true,
+        })
+        .to(this.dancingBear, 0.75, {
+          scaleX: -this.dancingBear.scaleX,
+          ease: Power2.easeInOut,
+          repeat: 1,
+          yoyo: true,
+        })
+        .to(this.dancingBear, 1, { alpha: 0, ease: Power1.easeInOut });
+      this.danceTimeline.eventCallback("onRepeat", () => {
+        this.dancingBear.alpha = 1;
+      });
     }
 
     // ---------- Fireworks Particle Emitters ----------
@@ -386,8 +373,8 @@ class TitleScene extends Phaser.Scene {
       let y = startY + Phaser.Math.Between(-10, 10);
       // small explosion
       // this.fireworksEmitter.explode(15, x, y);
-      if (this.monkey) {
-        this.fireworksEmitter.explode(15, this.monkey.x, this.monkey.y);
+      if (this.dancingBear) {
+        this.fireworksEmitter.explode(15, this.dancingBear.x, this.dancingBear.y);
       }
     }
   }
@@ -402,12 +389,12 @@ class TitleScene extends Phaser.Scene {
   }
 
   spawnMusicNotes() {
-    if (!this.monkey) return;
+    if (!this.dancingBear) return;
 
     // We'll spawn two music notes near the dancing bear's position.
-    const xPos1 = this.monkey.x - 40;
-    const xPos2 = this.monkey.x + 40;
-    const yPos = this.monkey.y;
+    const xPos1 = this.dancingBear.x - 40;
+    const xPos2 = this.dancingBear.x + 40;
+    const yPos = this.dancingBear.y;
 
     // Create musicNotes sprite
     this.musicNotes = this.add.sprite(xPos1, yPos, "music-notes");
