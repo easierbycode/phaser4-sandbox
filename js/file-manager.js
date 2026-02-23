@@ -31,12 +31,41 @@ class FileManager {
     }
 
     waitForCordova() {
-        return new Promise((resolve) => {
-            if (window.cordova) {
-                document.addEventListener('deviceready', resolve, false);
-            } else {
+        return new Promise((resolve, reject) => {
+            if (!window.cordova) {
                 resolve();
+                return;
             }
+
+            // cordova.file is set by the file plugin after deviceready
+            if (cordova.file) {
+                resolve();
+                return;
+            }
+
+            let settled = false;
+            const settle = (fn, arg) => {
+                if (settled) return;
+                settled = true;
+                fn(arg);
+            };
+
+            document.addEventListener('deviceready', () => {
+                settle(resolve);
+            }, false);
+
+            // Poll as fallback in case deviceready already fired
+            const interval = setInterval(() => {
+                if (cordova.file) {
+                    clearInterval(interval);
+                    settle(resolve);
+                }
+            }, 50);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                settle(reject, new Error('Timeout waiting for Cordova file plugin'));
+            }, 10000);
         });
     }
 
