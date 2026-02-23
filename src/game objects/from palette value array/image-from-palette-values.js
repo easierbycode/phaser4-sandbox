@@ -5,22 +5,22 @@ class ImageFromPaletteValues extends Phaser.Scene
         const pixelWidth = 6;
         const pixelHeight = 6;
         const palette = {
-            0: '#1b1b1b',
-            1: '#ffffff',
-            2: '#ef476f',
-            3: '#06d6a0',
-            4: '#118ab2',
-            5: '#ffd166',
-            6: '#073b4c',
-            7: '#f15bb5',
-            8: '#8ecae6',
-            9: '#ffb703',
-            A: '#fb8500',
-            B: '#8338ec',
-            C: '#3a86ff',
-            D: '#ff006e',
-            E: '#ffbe0b',
-            F: '#ff7d00'
+            0: '#282210',
+            1: '#f8f4e8',
+            2: '#c7a02b',
+            3: '#d8b448',
+            4: '#80671a',
+            5: '#ecd180',
+            6: '#30270c',
+            7: '#e0bf5c',
+            8: '#d0ab3a',
+            9: '#f2db94',
+            A: '#f6e4ac',
+            B: '#907420',
+            C: '#e8c868',
+            D: '#aa8a28',
+            E: '#faeab8',
+            F: '#d4b350'
         };
 
         const createFromPalette = (key, data) =>
