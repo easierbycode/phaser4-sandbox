@@ -146,6 +146,61 @@
         .close-btn:hover {
             background-color: #c0392b;
         }
+
+        /* Edit Modal */
+        .edit-modal-content {
+            display: flex;
+            flex-direction: column;
+            max-height: 95vh;
+        }
+
+        .edit-modal-body {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            padding: 1rem 2rem 2rem;
+            max-height: none;
+            overflow: hidden;
+        }
+
+        .edit-textarea {
+            flex: 1;
+            width: 100%;
+            min-height: 60vh;
+            background: #1a1a2e;
+            color: #e2e8f0;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+            tab-size: 4;
+        }
+
+        .edit-textarea:focus {
+            border-color: #667eea;
+        }
+
+        .edit-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            justify-content: flex-end;
+        }
+
+        .run-btn {
+            background: #667eea !important;
+            color: white !important;
+            border-color: #667eea !important;
+        }
+
+        .run-btn:hover {
+            background: #5a6fd8 !important;
+            border-color: #5a6fd8 !important;
+        }
     </style>
     <link rel="stylesheet" href="css/phaser4-styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
@@ -179,6 +234,7 @@
             <div class="control-buttons">
                 <button id="fullscreen-btn" class="control-btn">100%</button>
                 <button id="source-btn" class="control-btn">Source</button>
+                <button id="edit-btn" class="control-btn">Edit</button>
                 <button id="settings-cog">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                         <path
@@ -207,6 +263,22 @@
                     <a id="github-link" href="#" target="_blank" class="github-link">View on GitHub</a>
                 </div>
                 <pre><code id="source-code" class="language-javascript"></code></pre>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="modal">
+        <div class="modal-content edit-modal-content">
+            <div class="modal-header">
+                <h2>Edit Source</h2>
+                <button class="close-modal" id="close-edit">&times;</button>
+            </div>
+            <div class="modal-body edit-modal-body">
+                <textarea id="edit-code" class="edit-textarea"></textarea>
+                <div class="edit-actions">
+                    <button id="reset-code-btn" class="control-btn">Reset</button>
+                    <button id="run-code-btn" class="control-btn run-btn">&#9654; Run</button>
+                </div>
             </div>
         </div>
     </div>

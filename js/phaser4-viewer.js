@@ -3,6 +3,7 @@ class Phaser4Viewer {
         this.currentExample = null;
         this.currentVersion = null;
         this.sourceCode = null;
+        this.originalSourceCode = null;
         this.returnPath = null;
         this.isModuleExample = false;
         this.init();
@@ -65,15 +66,50 @@ class Phaser4Viewer {
             this.switchToVersion(newVersion);
         });
 
+        // Edit button
+        document.getElementById('edit-btn').addEventListener('click', () => {
+            this.showEditModal();
+        });
+
         // Modal controls
         document.getElementById('close-source').addEventListener('click', () => {
             this.hideSourceModal();
         });
 
-        // Close modal when clicking outside
+        document.getElementById('close-edit').addEventListener('click', () => {
+            this.hideEditModal();
+        });
+
+        document.getElementById('run-code-btn').addEventListener('click', () => {
+            this.runEditedCode();
+        });
+
+        document.getElementById('reset-code-btn').addEventListener('click', () => {
+            this.resetCode();
+        });
+
+        // Tab key support in textarea
+        document.getElementById('edit-code').addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const ta = e.target;
+                const start = ta.selectionStart;
+                const end = ta.selectionEnd;
+                ta.value = ta.value.substring(0, start) + '    ' + ta.value.substring(end);
+                ta.selectionStart = ta.selectionEnd = start + 4;
+            }
+        });
+
+        // Close modals when clicking outside
         document.getElementById('source-modal').addEventListener('click', (e) => {
             if (e.target.id === 'source-modal') {
                 this.hideSourceModal();
+            }
+        });
+
+        document.getElementById('edit-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'edit-modal') {
+                this.hideEditModal();
             }
         });
 
@@ -81,6 +117,7 @@ class Phaser4Viewer {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.hideSourceModal();
+                this.hideEditModal();
             } else if (e.key.toLowerCase() === 'f') {
                 this.toggleFullscreen();
             }
@@ -346,6 +383,7 @@ class Phaser4Viewer {
                 }
                 this.sourceCode = await response.text();
             }
+            this.originalSourceCode = this.sourceCode;
         } catch (error) {
             throw new Error('Failed to load source code: ' + error.message);
         }
@@ -360,7 +398,8 @@ class Phaser4Viewer {
         sourceCode.textContent = this.sourceCode || 'Source code not available';
 
         // Set GitHub link
-        const githubUrl = `https://github.com/phaserjs/examples/blob/master/public/${this.currentExample}`;
+        const encodedPath = this.currentExample.split('/').map(encodeURIComponent).join('/');
+        const githubUrl = `https://github.com/easierbycode/phaser4-sandbox/blob/master/public/${encodedPath}`;
         githubLink.href = githubUrl;
 
         // Apply syntax highlighting with Prism
@@ -378,6 +417,47 @@ class Phaser4Viewer {
     hideSourceModal() {
         const modal = document.getElementById('source-modal');
         modal.style.display = 'none';
+    }
+
+    showEditModal() {
+        const modal = document.getElementById('edit-modal');
+        document.getElementById('edit-code').value = this.sourceCode || '';
+        modal.style.display = 'block';
+        document.getElementById('edit-code').focus();
+    }
+
+    hideEditModal() {
+        document.getElementById('edit-modal').style.display = 'none';
+    }
+
+    async runEditedCode() {
+        const newCode = document.getElementById('edit-code').value;
+        this.sourceCode = newCode;
+
+        // Destroy any existing Phaser game instance
+        if (window.game && typeof window.game.destroy === 'function') {
+            window.game.destroy(true);
+            window.game = null;
+        }
+
+        // Clear the example container
+        const container = document.getElementById('phaser-example');
+        container.innerHTML = '';
+
+        // Remove old example script tag
+        const oldScript = document.getElementById('example-script');
+        if (oldScript) oldScript.remove();
+
+        // Re-run with updated code
+        await this.runExample();
+
+        this.hideEditModal();
+    }
+
+    resetCode() {
+        if (this.originalSourceCode !== undefined) {
+            document.getElementById('edit-code').value = this.originalSourceCode;
+        }
     }
 
     showError(message) {
