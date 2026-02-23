@@ -368,8 +368,12 @@ class Phaser4Viewer {
 
             // Check if running in Cordova
             if (typeof cordova !== 'undefined' && window.metadataManager) {
-                // Wait for Cordova to be ready
+                // Wait for Cordova file plugin to be ready
                 await window.metadataManager.waitForCordova();
+
+                if (!cordova.file) {
+                    throw new Error('Cordova file plugin not available');
+                }
 
                 // In Cordova, fetch doesn't work for local files. Use File API.
                 // We assume currentExample is a relative path from the root of the app

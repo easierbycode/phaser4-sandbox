@@ -30,8 +30,12 @@ class MetadataManager {
             // Fall back to examples.json
             // Check if running in Cordova
             if (typeof cordova !== 'undefined') {
-                // Wait for Cordova to be ready
+                // Wait for Cordova file plugin to be ready
                 await this.waitForCordova();
+
+                if (!cordova.file) {
+                    throw new Error('Cordova file plugin not available');
+                }
 
                 // In Cordova, load from application directory
                 const examplesPath = cordova.file.applicationDirectory + 'www/examples.json';
@@ -53,20 +57,47 @@ class MetadataManager {
     }
 
     /**
-     * Wait for Cordova to be ready
+     * Wait for Cordova to be ready (file plugin initialized)
      */
     waitForCordova() {
-        return new Promise((resolve) => {
-            if (window.cordova) {
-                if (document.readyState === 'complete' || window.cordova.version) {
-                    // Cordova is already ready
-                    resolve();
-                } else {
-                    document.addEventListener('deviceready', resolve, false);
-                }
-            } else {
+        return new Promise((resolve, reject) => {
+            if (!window.cordova) {
                 resolve();
+                return;
             }
+
+            // cordova.file is set by the file plugin after deviceready
+            if (cordova.file) {
+                resolve();
+                return;
+            }
+
+            let settled = false;
+            const settle = (fn, arg) => {
+                if (settled) return;
+                settled = true;
+                fn(arg);
+            };
+
+            // Listen for deviceready in case it hasn't fired yet
+            document.addEventListener('deviceready', () => {
+                settle(resolve);
+            }, false);
+
+            // Poll as a fallback in case deviceready already fired but
+            // cordova.file wasn't available at the instant we checked
+            const interval = setInterval(() => {
+                if (cordova.file) {
+                    clearInterval(interval);
+                    settle(resolve);
+                }
+            }, 50);
+
+            // Timeout so we don't wait forever
+            setTimeout(() => {
+                clearInterval(interval);
+                settle(reject, new Error('Timeout waiting for Cordova file plugin'));
+            }, 10000);
         });
     }
 
@@ -400,6 +431,11 @@ class MetadataManager {
         // Load fresh metadata using the same method as loadMetadata
         if (typeof cordova !== 'undefined') {
             await this.waitForCordova();
+
+            if (!cordova.file) {
+                throw new Error('Cordova file plugin not available');
+            }
+
             const examplesPath = cordova.file.applicationDirectory + 'www/examples.json';
             const content = await this.readCordovaFile(examplesPath);
             this.metadata = JSON.parse(content);
