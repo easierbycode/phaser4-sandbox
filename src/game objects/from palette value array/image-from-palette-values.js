@@ -2,6 +2,9 @@ class ImageFromPaletteValues extends Phaser.Scene
 {
     create ()
     {
+        this.selectedSprite = null;
+        this.osdMenu = null;
+
         const pixelWidth = 6;
         const pixelHeight = 6;
         const palette = {
@@ -246,18 +249,107 @@ class ImageFromPaletteValues extends Phaser.Scene
 
         createFromPalette('joystick', joystick);
 
-        this.add.image(150, 200, 'chick').setOrigin(0, 1);
-        this.add.image(350, 200, 'burd').setOrigin(0, 1);
-        this.add.image(550, 200, 'alien').setOrigin(0, 1);
+        const addSelectableSprite = (x, y, key) =>
+        {
+            const sprite = this.add.image(x, y, key).setOrigin(0, 1);
 
-        this.add.image(150, 350, 'ufo').setOrigin(0, 1);
-        this.add.image(350, 350, 'star').setOrigin(0, 1);
-        this.add.image(550, 350, 'ship').setOrigin(0, 1);
+            sprite.setInteractive({ useHandCursor: true });
 
-        this.add.image(150, 500, 'cat').setOrigin(0, 1);
-        this.add.image(350, 500, 'joystick').setOrigin(0, 1);
-        this.add.image(550, 500, 'joypad').setOrigin(0, 1);
+            sprite.on('pointerdown', () =>
+            {
+                this.showOsdMenu(sprite);
+            });
 
+            return sprite;
+        };
+
+        addSelectableSprite(150, 200, 'chick');
+        addSelectableSprite(350, 200, 'burd');
+        addSelectableSprite(550, 200, 'alien');
+
+        addSelectableSprite(150, 350, 'ufo');
+        addSelectableSprite(350, 350, 'star');
+        addSelectableSprite(550, 350, 'ship');
+
+        addSelectableSprite(150, 500, 'cat');
+        addSelectableSprite(350, 500, 'joystick');
+        addSelectableSprite(550, 500, 'joypad');
+
+        this.input.on('pointerdown', (pointer, gameObjects) =>
+        {
+            if (gameObjects.length === 0)
+            {
+                this.hideOsdMenu();
+            }
+        });
+    }
+
+    hideOsdMenu ()
+    {
+        if (this.osdMenu)
+        {
+            this.osdMenu.destroy(true);
+            this.osdMenu = null;
+        }
+    }
+
+    showOsdMenu (sprite)
+    {
+        this.hideOsdMenu();
+
+        this.selectedSprite = sprite;
+
+        const menuWidth = 172;
+        const menuHeight = 42;
+        const menuX = Phaser.Math.Clamp(sprite.x + (sprite.displayWidth / 2), menuWidth / 2 + 12, 800 - menuWidth / 2 - 12);
+        const menuY = Phaser.Math.Clamp(sprite.y - sprite.displayHeight - 18, menuHeight / 2 + 12, 600 - menuHeight / 2 - 12);
+
+        const container = this.add.container(menuX, menuY);
+        container.setDepth(10);
+
+        const panel = this.add.rectangle(0, 0, menuWidth, menuHeight, 0x101010, 0.9)
+            .setStrokeStyle(2, 0xf8f4e8, 1);
+
+        container.add(panel);
+
+        const createButton = (x, label, callback) =>
+        {
+            const button = this.add.rectangle(x, 0, 46, 28, 0x2a2a2a, 1)
+                .setStrokeStyle(1, 0x8a8a8a, 1)
+                .setInteractive({ useHandCursor: true });
+
+            const text = this.add.text(x, 0, label, {
+                fontFamily: 'Arial',
+                fontSize: 14,
+                color: '#ffffff'
+            }).setOrigin(0.5);
+
+            button.on('pointerdown', callback);
+
+            container.add([ button, text ]);
+        };
+
+        createButton(-56, '⬇', () =>
+        {
+            const link = document.createElement('a');
+            link.download = `${sprite.texture.key}.png`;
+            link.href = sprite.texture.getSourceImage().toDataURL('image/png');
+            link.click();
+        });
+
+        createButton(0, '@2x', () =>
+        {
+            sprite.setScale(2);
+            this.showOsdMenu(sprite);
+        });
+
+        createButton(56, '@3x', () =>
+        {
+            sprite.setScale(3);
+            this.showOsdMenu(sprite);
+        });
+
+        this.osdMenu = container;
 
     }
 }
