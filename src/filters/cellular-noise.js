@@ -11,9 +11,9 @@ class Example extends Phaser.Scene
 
     preload ()
     {
-        this.load.atlas('walker', 'assets/animations/walker.png', 'assets/animations/walker.json');
-        this.load.image('sky', 'assets/skies/ms3-sky.png');
-        this.load.image('trees', 'assets/skies/ms3-trees.png');
+        this.load.atlas('walker', 'https://easierbycode.com/assets/spritesheets/walker.png', 'https://easierbycode.com/assets/spritesheets/walker.json');
+        this.load.image('sky', 'https://easierbycode.com/assets/sprites/ms3-sky.png');
+        this.load.image('trees', 'https://easierbycode.com/assets/sprites/ms3-trees.png');
     }
 
     create ()
