@@ -49,11 +49,11 @@
       "birthtimeMs": 1489102620074.4985
     },
     {
-      "path": "src/game config",
-      "name": "game config",
+      "path": "src/renderer",
+      "name": "renderer",
       "children": [
         {
-          "path": "src/game config/smooth-pixel-art.js",
+          "path": "src/renderer/smooth-pixel-art.js",
           "name": "smooth pixel art",
           "birthtimeMs": 1775923200000
         }
