@@ -44,6 +44,11 @@
           "path": "src/filters/cellular-noise.js",
           "name": "cellular noise",
           "birthtimeMs": 1775836800000
+        },
+        {
+          "path": "src/filters/displacement.js",
+          "name": "displacement",
+          "birthtimeMs": 1775923200000
         }
       ],
       "birthtimeMs": 1489102620074.4985
