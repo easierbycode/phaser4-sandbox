@@ -317,7 +317,14 @@ class Phaser4Viewer {
         const exampleScript = document.createElement('script');
         exampleScript.id = 'example-script';
         exampleScript.type = scriptType;
-        exampleScript.textContent = this.sourceCode;
+
+        // Wrap non-module scripts in an IIFE to prevent redeclaration errors
+        // when re-running edited code (let/const/class can't be redeclared in global scope)
+        if (scriptType === 'text/javascript') {
+            exampleScript.textContent = `(function() {\n${this.sourceCode}\nif (typeof game !== 'undefined') { window.game = game; }\n})();`;
+        } else {
+            exampleScript.textContent = this.sourceCode;
+        }
 
         document.body.appendChild(exampleScript);
     }
