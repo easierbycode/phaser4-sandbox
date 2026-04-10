@@ -3,8 +3,8 @@ class Example extends Phaser.Scene
     preload ()
     {
         this.load.setBaseURL('https://easierbycode.com/assets');
-        this.load.image('pic', 'sprites/city.png');
-        this.load.image('distort', 'sprites/goldman.png');
+        this.load.image('distort', 'sprites/city.png');
+        this.load.image('pic', 'sprites/goldman.png');
     }
 
     create ()
@@ -20,11 +20,11 @@ class Example extends Phaser.Scene
 
         this.tweens.add({
             targets: fx,
-            x: 0.3,
+            x: 1.3,
             yoyo: true,
             loop: -1,
-            duration: 2000,
-            ease: 'sine.inout'
+            duration: 4000,
+            ease: 'quad.inout'
         });
     }
 }
