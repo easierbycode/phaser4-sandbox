@@ -49,6 +49,11 @@
           "path": "src/filters/displacement.js",
           "name": "displacement",
           "birthtimeMs": 1775923200000
+        },
+        {
+          "path": "src/filters/simplex-noise.js",
+          "name": "simplex noise",
+          "birthtimeMs": 1776240000000
         }
       ],
       "birthtimeMs": 1489102620074.4985
