@@ -211,6 +211,34 @@ The app requests the following Android permissions:
 - Check that the APK is signed (for production)
 - Verify minimum SDK version compatibility (API 24+)
 
+#### "App not installed" when updating a previously installed APK
+
+Android refuses to install an APK over an existing one if the signing
+certificate does not match. Debug APKs built in different environments
+(e.g. a fresh GitHub Actions runner) are signed by different randomly
+generated debug keystores, so each new CI artifact fails to install as
+an update.
+
+This project commits a stable `debug.keystore` at the repository root and
+the `deploy.yaml` workflow copies it into `~/.android/debug.keystore`
+before the Gradle build. As a result, every CI-produced debug APK is
+signed with the same certificate and can cleanly install over previous
+builds from the same branch.
+
+If you still hit "App not installed":
+
+1. Uninstall any previously installed copy of Phaser 4 Sandbox from the
+   device. The first old install on your device was signed with the
+   random debug keystore generated on that build's runner, and cannot be
+   updated in place.
+2. Reinstall the new APK. From this point on, updates work.
+3. If you build locally, delete `~/.android/debug.keystore` on your dev
+   machine and run the build once — Gradle will pick up the committed
+   `debug.keystore` if you copy it into place first:
+   ```bash
+   cp debug.keystore ~/.android/debug.keystore
+   ```
+
 ## API Reference
 
 ### FileManager

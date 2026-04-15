@@ -84,6 +84,17 @@ jobs:
 
           echo "Cordova project structure ready"
 
+      - name: Install stable debug keystore
+        run: |
+          # Use a committed debug keystore so every CI build signs the APK
+          # with the same certificate. Without this, each CI run generates a
+          # fresh random debug keystore and the resulting APK cannot install
+          # over a previously-installed one ("App not installed" error).
+          echo "Installing stable debug keystore..."
+          mkdir -p "$HOME/.android"
+          cp debug.keystore "$HOME/.android/debug.keystore"
+          echo "Debug keystore installed at $HOME/.android/debug.keystore"
+
       - name: Add Android platform
         run: |
           echo "Adding Android platform..."
