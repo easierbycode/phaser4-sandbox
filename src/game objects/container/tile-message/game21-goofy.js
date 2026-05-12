@@ -103,10 +103,12 @@ const BRICK_KEY = 'mario-brick';
 const BRICK_PARTICLE_KEY = 'mario-brick-particle';
 const BLOCK_KEY = 'mario-block';
 const COIN_KEY = 'coin';
+const FIREWORK_KEY = 'mario-firework';
 
 const GOOFY_WALK_ANIM = 'goofy-walk-loop';
 const BLOCK_PULSE_ANIM = 'mario-block-pulse';
 const COIN_SPIN_ANIM = 'mario-coin-spin';
+const FIREWORK_ANIM = 'mario-firework-spin';
 
 const GLOBE_SCALE = 0.45;
 const GOOFY_SCALE = 0.6;
@@ -114,37 +116,50 @@ const GOOFY_SCALE = 0.6;
 const ANGULAR_SPEED_RAD_PER_SEC = 1.1;
 const GLOBE_ROTATION_FACTOR = 0.25;
 
-const CAMERA_ZOOM = 2.5;
-
-const MESSAGE = "HAPPY MOTHER'S DAY";
-const MESSAGE_ARC_DEG = 240;
-
 const LETTER_CELL_SIZE = 4;
 const LETTER_GRID_W = 3;
 const LETTER_GRID_H = 5;
 const BRICK_SOURCE_PX = 16;
-const LETTER_RADIUS_OFFSET = 38;
+const BASE_LETTER_RADIUS_OFFSET = 38;
+const LETTER_SPACING_PADDING = 1.25;
 
 const GOOFY_HEIGHT_PX = 24;
 
-const JUMP_DURATION_SEC = 0.75;
-const JUMP_PEAK_HEIGHT = 30;
+const BASE_JUMP_PEAK_HEIGHT = 30;
+const BASE_JUMP_DURATION_SEC = 0.75;
 const COLLISION_RADIUS_PX = 6;
+
+const FIREWORK_DISPLAY_MS = 3500;
 
 const STATE_WALKING = 'walking';
 const STATE_JUMPING = 'jumping';
 
 const LETTER_PATTERNS = {
-  'H': ['X.X', 'X.X', 'XXX', 'X.X', 'X.X'],
   'A': ['.X.', 'X.X', 'XXX', 'X.X', 'X.X'],
-  'P': ['XX.', 'X.X', 'XX.', 'X..', 'X..'],
-  'Y': ['X.X', 'X.X', '.X.', '.X.', '.X.'],
-  'O': ['XXX', 'X.X', 'X.X', 'X.X', 'XXX'],
-  'T': ['XXX', '.X.', '.X.', '.X.', '.X.'],
+  'B': ['XX.', 'X.X', 'XX.', 'X.X', 'XX.'],
+  'C': ['XXX', 'X..', 'X..', 'X..', 'XXX'],
+  'D': ['XX.', 'X.X', 'X.X', 'X.X', 'XX.'],
   'E': ['XXX', 'X..', 'XX.', 'X..', 'XXX'],
+  'F': ['XXX', 'X..', 'XX.', 'X..', 'X..'],
+  'G': ['XXX', 'X..', 'X.X', 'X.X', 'XXX'],
+  'H': ['X.X', 'X.X', 'XXX', 'X.X', 'X.X'],
+  'I': ['XXX', '.X.', '.X.', '.X.', 'XXX'],
+  'J': ['..X', '..X', '..X', 'X.X', 'XXX'],
+  'K': ['X.X', 'X.X', 'XX.', 'X.X', 'X.X'],
+  'L': ['X..', 'X..', 'X..', 'X..', 'XXX'],
+  'N': ['X.X', 'XX.', 'X.X', '.XX', 'X.X'],
+  'O': ['XXX', 'X.X', 'X.X', 'X.X', 'XXX'],
+  'P': ['XX.', 'X.X', 'XX.', 'X..', 'X..'],
+  'Q': ['XXX', 'X.X', 'X.X', 'XXX', '..X'],
   'R': ['XX.', 'X.X', 'XX.', 'X.X', 'X.X'],
   'S': ['.XX', 'X..', '.X.', '..X', 'XX.'],
-  'D': ['XX.', 'X.X', 'X.X', 'X.X', 'XX.'],
+  'T': ['XXX', '.X.', '.X.', '.X.', '.X.'],
+  'U': ['X.X', 'X.X', 'X.X', 'X.X', 'XXX'],
+  'V': ['X.X', 'X.X', 'X.X', 'X.X', '.X.'],
+  'W': ['X.X', 'X.X', 'XXX', 'XXX', '.X.'],
+  'X': ['X.X', 'X.X', '.X.', 'X.X', 'X.X'],
+  'Y': ['X.X', 'X.X', '.X.', '.X.', '.X.'],
+  'Z': ['XXX', '..X', '.X.', 'X..', 'XXX'],
   "'": ['.X.', '.X.', '...', '...', '...']
 };
 
@@ -155,6 +170,17 @@ const M_DIAGONAL_PARTICLES = [
   { x: -0.5, y: -0.8 }
 ];
 const M_V_TIP = { x: 0, y: 0.4 };
+
+const DAY_NAMES = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+
+function buildPhaseTexts() {
+  const today = DAY_NAMES[new Date().getDay()];
+  return [
+    "HAPPY MOTHER'S DAY",
+    `HAPPY ${today}`,
+    'YOUR PRINCESS IS IN ANOTHER CASTLE'
+  ];
+}
 
 class Game21Goofy extends Phaser.Scene {
   constructor() {
@@ -169,6 +195,7 @@ class Game21Goofy extends Phaser.Scene {
     this.load.atlas(BRICK_PARTICLE_KEY, `${ASSET_BASE}/mario-brick-particle.png`, `${ASSET_BASE}/mario-brick-particle.json`);
     this.load.atlas(BLOCK_KEY, `${ASSET_BASE}/mario-block.png`, `${ASSET_BASE}/mario-block.json`);
     this.load.atlas(COIN_KEY, `${ASSET_BASE}/coin.png`, `${ASSET_BASE}/coin.json`);
+    this.load.atlas(FIREWORK_KEY, `${ASSET_BASE}/mario-firework.png`, `${ASSET_BASE}/mario-firework.json`);
   }
 
   create() {
@@ -199,10 +226,16 @@ class Game21Goofy extends Phaser.Scene {
     this.direction = 1;
     this.state = STATE_WALKING;
     this.jumpElapsed = 0;
-    this.jumpRadius = this.globeRadius;
 
+    this.phaseTexts = buildPhaseTexts();
+    this.phaseIndex = 0;
+    this.advancing = false;
+    this.letterContainers = [];
     this.collidables = [];
-    this.createMessageArc();
+    this.fireworks = [];
+    this.lastSlots = [];
+
+    this.startPhase(0);
 
     this.input.keyboard.on('keydown-LEFT', () => { if (this.state === STATE_WALKING) this.direction = -1; });
     this.input.keyboard.on('keydown-RIGHT', () => { if (this.state === STATE_WALKING) this.direction = 1; });
@@ -211,7 +244,6 @@ class Game21Goofy extends Phaser.Scene {
 
     this.positionGoofy();
 
-    this.cameras.main.setZoom(CAMERA_ZOOM);
     this.cameras.main.startFollow(this.goofy, true, 0.12, 0.12);
     this.cameras.main.centerOn(this.goofy.x, this.goofy.y);
   }
@@ -241,16 +273,80 @@ class Game21Goofy extends Phaser.Scene {
         repeat: -1
       });
     }
+    if (!this.anims.exists(FIREWORK_ANIM)) {
+      this.anims.create({
+        key: FIREWORK_ANIM,
+        frames: this.anims.generateFrameNames(FIREWORK_KEY, { prefix: 'atlas_s', start: 0, end: 1 }),
+        frameRate: 10,
+        repeat: -1
+      });
+    }
   }
 
-  createMessageArc() {
+  computeLayout(text) {
+    const arcDeg = 240;
+    const stepDeg = arcDeg / (text.length - 1);
+    const stepRad = Phaser.Math.DegToRad(stepDeg);
+    const letterWidthPx = LETTER_GRID_W * LETTER_CELL_SIZE;
+    const minStepArc = letterWidthPx * LETTER_SPACING_PADDING;
+
+    const baseLetterRadius = this.globeRadius + BASE_LETTER_RADIUS_OFFSET;
+    const minLetterRadius = minStepArc / stepRad;
+    const letterRadius = Math.max(baseLetterRadius, minLetterRadius);
+
+    const letterRadiusOffset = letterRadius - this.globeRadius;
+    const jumpPeakHeight = Math.max(BASE_JUMP_PEAK_HEIGHT, letterRadiusOffset);
+    const jumpDurationSec = BASE_JUMP_DURATION_SEC * Math.sqrt(jumpPeakHeight / BASE_JUMP_PEAK_HEIGHT);
+
+    const letterHeightPx = LETTER_GRID_H * LETTER_CELL_SIZE;
+    const farthest = letterRadius + letterHeightPx;
+    const viewport = Math.min(this.game.config.width, this.game.config.height);
+    const zoomFitArc = (viewport * 0.5) / (farthest * 1.1);
+    const cameraZoom = Math.min(2.5, Math.max(1.0, zoomFitArc));
+
+    return { arcDeg, letterRadius, jumpPeakHeight, jumpDurationSec, cameraZoom };
+  }
+
+  startPhase(index) {
+    this.clearPhaseObjects();
+
+    const text = this.phaseTexts[index];
+    const layout = this.computeLayout(text);
+    this.letterRadius = layout.letterRadius;
+    this.jumpPeakHeight = layout.jumpPeakHeight;
+    this.jumpDurationSec = layout.jumpDurationSec;
+    this.jumpRadius = this.globeRadius;
+
+    this.cameras.main.zoomTo(layout.cameraZoom, 400, 'Sine.easeInOut');
+
+    this.createMessageArc(text, layout.arcDeg, layout.letterRadius);
+
+    this.activeCount = this.collidables.length;
+    this.advancing = false;
+  }
+
+  clearPhaseObjects() {
+    for (const c of this.letterContainers) {
+      c.destroy(true);
+    }
+    this.letterContainers.length = 0;
+    this.collidables.length = 0;
+
+    for (const f of this.fireworks) {
+      f.destroy();
+    }
+    this.fireworks.length = 0;
+
+    this.lastSlots.length = 0;
+  }
+
+  createMessageArc(text, arcDeg, letterRadius) {
     const cx = this.globe.x;
     const cy = this.globe.y;
-    const letterRadius = this.globeRadius + LETTER_RADIUS_OFFSET;
 
-    const chars = MESSAGE.split('');
-    const stepDeg = MESSAGE_ARC_DEG / (chars.length - 1);
-    const startDeg = -90 - MESSAGE_ARC_DEG / 2;
+    const chars = text.split('');
+    const stepDeg = arcDeg / (chars.length - 1);
+    const startDeg = -90 - arcDeg / 2;
 
     chars.forEach((char, i) => {
       const deg = startDeg + i * stepDeg;
@@ -262,6 +358,7 @@ class Game21Goofy extends Phaser.Scene {
       const container = this.add.container(x, y);
       container.setDepth(2);
       container.setRotation(upright);
+      this.letterContainers.push(container);
 
       this.buildLetter(container, char, x, y, upright);
     });
@@ -281,6 +378,7 @@ class Game21Goofy extends Phaser.Scene {
         container,
         consumed: false
       });
+      this.lastSlots.push({ worldX: containerX, worldY: containerY });
       return;
     }
 
@@ -322,6 +420,7 @@ class Game21Goofy extends Phaser.Scene {
           container,
           consumed: false
         });
+        this.lastSlots.push({ worldX, worldY });
       }
     }
   }
@@ -352,6 +451,7 @@ class Game21Goofy extends Phaser.Scene {
         container,
         consumed: false
       });
+      this.lastSlots.push({ worldX, worldY });
     };
 
     for (let row = 0; row < LETTER_GRID_H; row++) {
@@ -372,7 +472,7 @@ class Game21Goofy extends Phaser.Scene {
   }
 
   startJump() {
-    if (this.state !== STATE_WALKING) {
+    if (this.state !== STATE_WALKING || this.advancing) {
       return;
     }
     this.state = STATE_JUMPING;
@@ -396,11 +496,11 @@ class Game21Goofy extends Phaser.Scene {
       this.goofyAngle += this.direction * ANGULAR_SPEED_RAD_PER_SEC * dt;
     } else if (this.state === STATE_JUMPING) {
       this.jumpElapsed += dt;
-      const t = this.jumpElapsed / JUMP_DURATION_SEC;
+      const t = this.jumpElapsed / this.jumpDurationSec;
       if (t >= 1) {
         this.endJump();
       } else {
-        this.jumpRadius = this.globeRadius + JUMP_PEAK_HEIGHT * Math.sin(Math.PI * t);
+        this.jumpRadius = this.globeRadius + this.jumpPeakHeight * Math.sin(Math.PI * t);
         this.checkLetterCollisions();
       }
     }
@@ -434,8 +534,40 @@ class Game21Goofy extends Phaser.Scene {
         } else if (c.type === 'block') {
           this.popBlock(c);
         }
+        this.onConsumed();
       }
     }
+  }
+
+  onConsumed() {
+    this.activeCount--;
+    if (this.activeCount <= 0 && !this.advancing) {
+      this.advancing = true;
+      this.time.delayedCall(450, () => this.runFireworksThenAdvance());
+    }
+  }
+
+  runFireworksThenAdvance() {
+    const slots = this.lastSlots.slice();
+    const fireworkScale = LETTER_CELL_SIZE / BRICK_SOURCE_PX * 1.2;
+
+    for (const s of slots) {
+      const fw = this.add.sprite(s.worldX, s.worldY, FIREWORK_KEY, 'atlas_s0');
+      fw.setScale(fireworkScale);
+      fw.setDepth(4);
+      fw.play(FIREWORK_ANIM);
+      this.fireworks.push(fw);
+    }
+
+    this.time.delayedCall(FIREWORK_DISPLAY_MS, () => {
+      if (this.phaseIndex < this.phaseTexts.length - 1) {
+        this.phaseIndex++;
+        this.startPhase(this.phaseIndex);
+      } else {
+        this.clearPhaseObjects();
+        this.advancing = false;
+      }
+    });
   }
 
   explodeBrick(c) {

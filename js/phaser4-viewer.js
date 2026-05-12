@@ -25,6 +25,13 @@ class Phaser4Viewer {
         // Setup return path for back button
         this.returnPath = getQueryString('return') || 'index.html';
 
+        // Live mode strips all viewer chrome and auto-enters fullscreen on first gesture
+        const params = new URLSearchParams(window.location.search);
+        this.liveMode = params.has('live');
+        if (this.liveMode) {
+            this.enableLiveMode();
+        }
+
         // Setup event listeners
         this.setupEventListeners();
 
@@ -33,6 +40,27 @@ class Phaser4Viewer {
 
         // Load and display the example
         this.loadExample();
+    }
+
+    enableLiveMode() {
+        document.body.classList.add('live-mode');
+
+        const tryFullscreen = () => {
+            document.removeEventListener('pointerdown', tryFullscreen, true);
+            document.removeEventListener('keydown', tryFullscreen, true);
+
+            const target = document.documentElement;
+            const request =
+                target.requestFullscreen ||
+                target.webkitRequestFullscreen ||
+                target.msRequestFullscreen;
+            if (request) {
+                request.call(target).catch(() => {});
+            }
+        };
+
+        document.addEventListener('pointerdown', tryFullscreen, true);
+        document.addEventListener('keydown', tryFullscreen, true);
     }
 
     setupEventListeners() {
@@ -317,7 +345,14 @@ class Phaser4Viewer {
         const exampleScript = document.createElement('script');
         exampleScript.id = 'example-script';
         exampleScript.type = scriptType;
-        exampleScript.textContent = this.sourceCode;
+
+        // Wrap non-module scripts in an IIFE to prevent redeclaration errors
+        // when re-running edited code (let/const/class can't be redeclared in global scope)
+        if (scriptType === 'text/javascript') {
+            exampleScript.textContent = `(function() {\n${this.sourceCode}\nif (typeof game !== 'undefined') { window.game = game; }\n})();`;
+        } else {
+            exampleScript.textContent = this.sourceCode;
+        }
 
         document.body.appendChild(exampleScript);
     }

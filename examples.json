@@ -39,9 +39,36 @@
           "path": "src/filters/shadow.js",
           "name": "shadow",
           "birthtimeMs": 1748011838963.8174
+        },
+        {
+          "path": "src/filters/cellular-noise.js",
+          "name": "cellular noise",
+          "birthtimeMs": 1775836800000
+        },
+        {
+          "path": "src/filters/displacement.js",
+          "name": "displacement",
+          "birthtimeMs": 1775923200000
+        },
+        {
+          "path": "src/filters/simplex-noise.js",
+          "name": "simplex noise",
+          "birthtimeMs": 1776240000000
         }
       ],
       "birthtimeMs": 1489102620074.4985
+    },
+    {
+      "path": "src/renderer",
+      "name": "renderer",
+      "children": [
+        {
+          "path": "src/renderer/smooth-pixel-art.js",
+          "name": "smooth pixel art",
+          "birthtimeMs": 1775923200000
+        }
+      ],
+      "birthtimeMs": 1775923200000
     },
     {
       "path": "src/game objects",
