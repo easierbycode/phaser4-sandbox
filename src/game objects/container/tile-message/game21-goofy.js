@@ -3,8 +3,8 @@ const gameSettings = {
   antialias: true,
   antialiasGL: true,
   roundPixels: false,
-  pixelArt: false,
-  mipmap: false
+  pixelArt: true,
+  mipmap: true
 };
 
 const TOGGLES = [
