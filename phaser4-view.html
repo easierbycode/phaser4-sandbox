@@ -201,6 +201,49 @@
             background: #5a6fd8 !important;
             border-color: #5a6fd8 !important;
         }
+
+        /* Live mode — ?live URL param renders just the game, no viewer chrome */
+        body.live-mode {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+        }
+
+        body.live-mode .viewer-header,
+        body.live-mode .viewer-controls {
+            display: none !important;
+        }
+
+        body.live-mode .viewer-content {
+            max-width: none;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        body.live-mode .example-container {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 0;
+            margin: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        body.live-mode .phaser-example {
+            width: 100vw;
+            height: 100vh;
+            min-height: 0;
+            border-radius: 0;
+        }
+
+        body.live-mode .phaser-example canvas {
+            display: block;
+        }
     </style>
     <link rel="stylesheet" href="css/phaser4-styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
