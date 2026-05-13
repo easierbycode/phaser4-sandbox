@@ -1,4 +1,5 @@
 var versions = [
+    { val : '4.1.0', text: '4.1.0' },
     { val : '4.0.0', text: '4.0.0' },
     { val : '4.0.0-rc.7', text: '4.0.0 RC 7' },
     { val : '4.0.0-rc.6', text: '4.0.0 RC 6' },
