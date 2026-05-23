@@ -133,6 +133,12 @@ const FIREWORK_DISPLAY_MS = 3500;
 
 const STATE_WALKING = 'walking';
 const STATE_JUMPING = 'jumping';
+const STATE_LAUNCHING = 'launching';
+
+const BLOCK_COIN_HIT_LIMIT = 2;
+const LAUNCH_SUCK_MS = 260;
+const LAUNCH_SHAKE_MS = 300;
+const LAUNCH_FLIGHT_MS = 1400;
 
 const LETTER_PATTERNS = {
   'A': ['.X.', 'X.X', 'XXX', 'X.X', 'X.X'],
@@ -376,7 +382,9 @@ class Game21Goofy extends Phaser.Scene {
         worldY: containerY,
         sprite: block,
         container,
-        consumed: false
+        consumed: false,
+        hits: 0,
+        hitThisJump: false
       });
       this.lastSlots.push({ worldX: containerX, worldY: containerY });
       return;
@@ -479,6 +487,12 @@ class Game21Goofy extends Phaser.Scene {
     this.jumpElapsed = 0;
     this.goofy.anims.stop();
     this.goofy.setTexture(GOOFY_JUMP_KEY, 'atlas_s0');
+
+    for (const c of this.collidables) {
+      if (c.type === 'block') {
+        c.hitThisJump = false;
+      }
+    }
   }
 
   endJump() {
@@ -491,6 +505,10 @@ class Game21Goofy extends Phaser.Scene {
 
   update(_, deltaMs) {
     const dt = deltaMs / 1000;
+
+    if (this.state === STATE_LAUNCHING) {
+      return; // the launch tween owns Goofy's transform
+    }
 
     if (this.state === STATE_WALKING) {
       this.goofyAngle += this.direction * ANGULAR_SPEED_RAD_PER_SEC * dt;
@@ -510,7 +528,9 @@ class Game21Goofy extends Phaser.Scene {
       this.globe.rotation -= this.direction * surfaceArc;
     }
 
-    this.positionGoofy();
+    if (this.state !== STATE_LAUNCHING) {
+      this.positionGoofy();
+    }
   }
 
   checkLetterCollisions() {
@@ -527,15 +547,32 @@ class Game21Goofy extends Phaser.Scene {
       if (c.consumed) continue;
       const dx = c.worldX - probeX;
       const dy = c.worldY - probeY;
-      if (dx * dx + dy * dy < thresholdSq) {
+      if (dx * dx + dy * dy >= thresholdSq) continue;
+
+      if (c.type === 'brick') {
         c.consumed = true;
-        if (c.type === 'brick') {
-          this.explodeBrick(c);
-        } else if (c.type === 'block') {
-          this.popBlock(c);
-        }
+        this.explodeBrick(c);
         this.onConsumed();
+      } else if (c.type === 'block') {
+        if (c.hitThisJump) continue;
+        c.hitThisJump = true;
+        this.hitBlock(c);
       }
+    }
+  }
+
+  hitBlock(c) {
+    c.hits++;
+
+    // The block still counts toward clearing the message on its first hit.
+    if (c.hits === 1) {
+      this.onConsumed();
+    }
+
+    if (c.hits > BLOCK_COIN_HIT_LIMIT) {
+      this.launchGoofyFromBlock(c);
+    } else {
+      this.popBlock(c);
     }
   }
 
@@ -640,6 +677,82 @@ class Game21Goofy extends Phaser.Scene {
         }
       });
     }
+  }
+
+  launchGoofyFromBlock(c) {
+    this.state = STATE_LAUNCHING;
+    this.goofy.anims.stop();
+    this.goofy.setTexture(GOOFY_JUMP_KEY, 'atlas_s0');
+    this.goofy.setFlipX(false);
+
+    const cx = this.globe.x;
+    const cy = this.globe.y;
+
+    // Phase 1: player is sucked down into the box and vanishes.
+    this.tweens.add({
+      targets: this.goofy,
+      x: c.worldX,
+      y: c.worldY,
+      scaleX: GOOFY_SCALE * 0.12,
+      scaleY: GOOFY_SCALE * 0.12,
+      duration: LAUNCH_SUCK_MS,
+      ease: 'Quad.In',
+      onComplete: () => {
+        this.goofy.setVisible(false);
+        this.shakeBlock(c);
+        this.time.delayedCall(LAUNCH_SHAKE_MS, () => this.cannonLaunch(c, cx, cy));
+      }
+    });
+  }
+
+  shakeBlock(c) {
+    this.tweens.add({
+      targets: c.sprite,
+      x: { from: -2, to: 2 },
+      duration: 40,
+      yoyo: true,
+      repeat: Math.floor(LAUNCH_SHAKE_MS / 80),
+      onComplete: () => { c.sprite.x = 0; }
+    });
+  }
+
+  cannonLaunch(c, cx, cy) {
+    const boxAngle = Math.atan2(c.worldY - cy, c.worldX - cx);
+    const targetAngle = boxAngle + Math.PI; // the other side of the globe
+
+    // Reappear out of the box, inverted, ready to be fired.
+    this.goofy.setScale(GOOFY_SCALE);
+    this.goofy.setVisible(true);
+    this.goofy.setFlipY(true);
+
+    const peak = this.globeRadius * 1.2 + 60;
+    const launch = { t: 0 };
+
+    this.tweens.add({
+      targets: launch,
+      t: 1,
+      duration: LAUNCH_FLIGHT_MS,
+      ease: 'Sine.easeInOut',
+      onUpdate: () => {
+        const t = launch.t;
+        const angle = boxAngle + Math.PI * t;
+        const radius = this.globeRadius + peak * Math.sin(Math.PI * t);
+        this.goofy.x = cx + Math.cos(angle) * radius;
+        this.goofy.y = cy + Math.sin(angle) * radius;
+        this.goofy.rotation = t * Math.PI * 4; // tumble like a cannonball
+      },
+      onComplete: () => this.landFromLaunch(targetAngle)
+    });
+  }
+
+  landFromLaunch(targetAngle) {
+    this.goofy.setFlipY(false);
+    this.goofyAngle = targetAngle;
+    this.jumpRadius = this.globeRadius;
+    this.state = STATE_WALKING;
+    this.goofy.setTexture(GOOFY_KEY, 'atlas_s0');
+    this.goofy.play(GOOFY_WALK_ANIM);
+    this.positionGoofy();
   }
 
   positionGoofy() {
