@@ -729,6 +729,7 @@ class Game21Goofy extends Phaser.Scene {
 
     const peak = this.globeRadius * 1.2 + 60;
     const launch = { t: 0 };
+    let nextTrailT = 0;
 
     this.tweens.add({
       targets: launch,
@@ -742,8 +743,29 @@ class Game21Goofy extends Phaser.Scene {
         this.goofy.x = cx + Math.cos(angle) * radius;
         this.goofy.y = cy + Math.sin(angle) * radius;
         this.goofy.rotation = t * Math.PI * 4; // tumble like a cannonball
+
+        if (t >= nextTrailT) {
+          this.spawnTrailFirework(this.goofy.x, this.goofy.y);
+          nextTrailT += 0.07;
+        }
       },
       onComplete: () => this.landFromLaunch(targetAngle)
+    });
+  }
+
+  spawnTrailFirework(x, y) {
+    const scale = LETTER_CELL_SIZE / BRICK_SOURCE_PX * 1.2;
+    const fw = this.add.sprite(x, y, FIREWORK_KEY, 'atlas_s0');
+    fw.setScale(scale);
+    fw.setDepth(2); // behind Goofy (depth 3) so it reads as a trail
+    fw.play(FIREWORK_ANIM);
+    this.tweens.add({
+      targets: fw,
+      alpha: { from: 1, to: 0 },
+      scale: scale * 1.6,
+      duration: 600,
+      ease: 'Quad.Out',
+      onComplete: () => fw.destroy()
     });
   }
 
