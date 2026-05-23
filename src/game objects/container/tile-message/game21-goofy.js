@@ -135,7 +135,8 @@ const STATE_WALKING = 'walking';
 const STATE_JUMPING = 'jumping';
 const STATE_LAUNCHING = 'launching';
 
-const BLOCK_COIN_HIT_LIMIT = 2;
+const BLOCK_COIN_HIT_MIN = 6;
+const BLOCK_COIN_HIT_MAX = 7;
 const LAUNCH_SUCK_MS = 260;
 const LAUNCH_SHAKE_MS = 300;
 const LAUNCH_FLIGHT_MS = 1400;
@@ -384,7 +385,8 @@ class Game21Goofy extends Phaser.Scene {
         container,
         consumed: false,
         hits: 0,
-        hitThisJump: false
+        hitThisJump: false,
+        coinHitLimit: Phaser.Math.Between(BLOCK_COIN_HIT_MIN, BLOCK_COIN_HIT_MAX)
       });
       this.lastSlots.push({ worldX: containerX, worldY: containerY });
       return;
@@ -569,7 +571,7 @@ class Game21Goofy extends Phaser.Scene {
       this.onConsumed();
     }
 
-    if (c.hits > BLOCK_COIN_HIT_LIMIT) {
+    if (c.hits > c.coinHitLimit) {
       this.launchGoofyFromBlock(c);
     } else {
       this.popBlock(c);
@@ -727,6 +729,7 @@ class Game21Goofy extends Phaser.Scene {
 
     const peak = this.globeRadius * 1.2 + 60;
     const launch = { t: 0 };
+    let nextTrailT = 0;
 
     this.tweens.add({
       targets: launch,
@@ -740,8 +743,29 @@ class Game21Goofy extends Phaser.Scene {
         this.goofy.x = cx + Math.cos(angle) * radius;
         this.goofy.y = cy + Math.sin(angle) * radius;
         this.goofy.rotation = t * Math.PI * 4; // tumble like a cannonball
+
+        if (t >= nextTrailT) {
+          this.spawnTrailFirework(this.goofy.x, this.goofy.y);
+          nextTrailT += 0.07;
+        }
       },
       onComplete: () => this.landFromLaunch(targetAngle)
+    });
+  }
+
+  spawnTrailFirework(x, y) {
+    const scale = LETTER_CELL_SIZE / BRICK_SOURCE_PX * 1.2;
+    const fw = this.add.sprite(x, y, FIREWORK_KEY, 'atlas_s0');
+    fw.setScale(scale);
+    fw.setDepth(2); // behind Goofy (depth 3) so it reads as a trail
+    fw.play(FIREWORK_ANIM);
+    this.tweens.add({
+      targets: fw,
+      alpha: { from: 1, to: 0 },
+      scale: scale * 1.6,
+      duration: 600,
+      ease: 'Quad.Out',
+      onComplete: () => fw.destroy()
     });
   }
 
