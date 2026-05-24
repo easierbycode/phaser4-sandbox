@@ -78,6 +78,9 @@ function buildPhaserConfig() {
       default: 'arcade',
       arcade: { gravity: { y: 0 }, debug: false }
     },
+    input: {
+      gamepad: true
+    },
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH
@@ -248,6 +251,20 @@ class Game21Goofy extends Phaser.Scene {
     this.input.keyboard.on('keydown-RIGHT', () => { if (this.state === STATE_WALKING) this.direction = 1; });
     this.input.keyboard.on('keydown-SPACE', () => this.startJump());
     this.input.on('pointerdown', () => this.startJump());
+
+    // Gamepad: bottom face button (A on Xbox, X on DualShock) jumps;
+    // d-pad left/right and the left stick mirror the arrow-key direction controls.
+    if (this.input.gamepad) {
+      this.input.gamepad.on('down', (pad, button, index) => {
+        if (index === 0) {
+          this.startJump();
+        } else if (index === 14 && this.state === STATE_WALKING) {
+          this.direction = -1;
+        } else if (index === 15 && this.state === STATE_WALKING) {
+          this.direction = 1;
+        }
+      });
+    }
 
     this.positionGoofy();
 
@@ -513,6 +530,12 @@ class Game21Goofy extends Phaser.Scene {
     }
 
     if (this.state === STATE_WALKING) {
+      const pad = this.input.gamepad && this.input.gamepad.pad1;
+      if (pad) {
+        const lx = pad.leftStick.x;
+        if (lx <= -0.3) this.direction = -1;
+        else if (lx >= 0.3) this.direction = 1;
+      }
       this.goofyAngle += this.direction * ANGULAR_SPEED_RAD_PER_SEC * dt;
     } else if (this.state === STATE_JUMPING) {
       this.jumpElapsed += dt;
