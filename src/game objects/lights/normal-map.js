@@ -45,10 +45,10 @@ class Example extends Phaser.Scene
         this.lights.setAmbientColor(0x1a1a1a);
 
         // Build the wall of flames sized to the current screen, and rebuild it
-        // whenever the game is resized (orientation change, window resize) so it
-        // always spans 100% of the display.
+        // (plus re-fit the caption) whenever the game is resized so it always
+        // spans 100% of the display.
         this.buildWall();
-        this.scale.on('resize', this.buildWall, this);
+        this.scale.on('resize', this.onResize, this);
 
         // A warm key light that follows the pointer - drag it across the flames
         // to watch the normal map catch the fire ridge by ridge.
@@ -75,12 +75,7 @@ class Example extends Phaser.Scene
         }).setScrollFactor(0).setDepth(1000);
 
         // Keep the single line on-screen: shrink it to fit narrow (portrait) widths.
-        const maxTextWidth = this.scale.width - 32;
-
-        if (this.instructions.width > maxTextWidth)
-        {
-            this.instructions.setScale(maxTextWidth / this.instructions.width);
-        }
+        this.fitInstructions();
 
         // Click / tap to cycle the key light through a small palette. The first
         // touch also hides the instructions.
@@ -98,6 +93,53 @@ class Example extends Phaser.Scene
             current = (current + 1) % colors.length;
             this.mouseLight.setColor(colors[current]);
         });
+    }
+
+    // Match the canvas to its container every frame. Scale.RESIZE only reacts to
+    // window resize events, but the viewer's "100%" / live-mode toggle resizes the
+    // parent element via a CSS class with no window event - so without this the
+    // canvas stays stuck at its boot size and gets letterboxed. Polling the parent
+    // size catches container changes however they happen (toggle, rotation, etc.).
+    fitToParent ()
+    {
+        const canvas = this.game.canvas;
+        const parent = canvas && canvas.parentElement;
+
+        if (!parent)
+        {
+            return;
+        }
+
+        const w = Math.floor(parent.clientWidth);
+        const h = Math.floor(parent.clientHeight);
+
+        if (w > 0 && h > 0 && (Math.abs(this.scale.width - w) > 1 || Math.abs(this.scale.height - h) > 1))
+        {
+            this.scale.resize(w, h);
+        }
+    }
+
+    onResize ()
+    {
+        this.buildWall();
+        this.fitInstructions();
+    }
+
+    fitInstructions ()
+    {
+        if (!this.instructions)
+        {
+            return;
+        }
+
+        this.instructions.setScale(1);
+
+        const maxTextWidth = this.scale.width - 32;
+
+        if (this.instructions.width > maxTextWidth)
+        {
+            this.instructions.setScale(maxTextWidth / this.instructions.width);
+        }
     }
 
     buildWall ()
@@ -137,6 +179,9 @@ class Example extends Phaser.Scene
 
     update (time)
     {
+        // Keep filling the container (catches the live-mode / "100%" toggle).
+        this.fitToParent();
+
         const cx = this.scale.width / 2;
         const h = this.scale.height;
 
