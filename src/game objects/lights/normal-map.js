@@ -77,18 +77,30 @@ class Example extends Phaser.Scene
         // Keep the single line on-screen: shrink it to fit narrow (portrait) widths.
         this.fitInstructions();
 
-        // Click / tap to cycle the key light through a small palette. The first
-        // touch also hides the instructions.
+        // Hide the instructions on the very first touch. We listen at the DOM
+        // level (capture) rather than only through Phaser input because the
+        // viewer's live-mode enters native fullscreen on the first pointerdown,
+        // which can cancel that first pointer sequence before Phaser processes
+        // it - so a Phaser-only handler would miss touch #1. This fires on the
+        // same first-touch signal that triggers fullscreen, so it never misses.
+        this.dismissInstructions = () => this.hideInstructions();
+        window.addEventListener('pointerdown', this.dismissInstructions, true);
+        window.addEventListener('touchstart', this.dismissInstructions, true);
+
+        this.events.once('shutdown', () =>
+        {
+            window.removeEventListener('pointerdown', this.dismissInstructions, true);
+            window.removeEventListener('touchstart', this.dismissInstructions, true);
+        });
+
+        // Click / tap to cycle the key light through a small palette (also hides
+        // the instructions when the pointer event does reach Phaser).
         const colors = [ 0xffb060, 0xffffff, 0x00ffcc, 0xff2222, 0x66ff33 ];
         let current = 0;
 
         this.input.on('pointerdown', () =>
         {
-            if (this.instructions)
-            {
-                this.instructions.destroy();
-                this.instructions = null;
-            }
+            this.hideInstructions();
 
             current = (current + 1) % colors.length;
             this.mouseLight.setColor(colors[current]);
@@ -123,6 +135,20 @@ class Example extends Phaser.Scene
     {
         this.buildWall();
         this.fitInstructions();
+    }
+
+    hideInstructions ()
+    {
+        if (!this.instructions)
+        {
+            return;
+        }
+
+        this.instructions.destroy();
+        this.instructions = null;
+
+        window.removeEventListener('pointerdown', this.dismissInstructions, true);
+        window.removeEventListener('touchstart', this.dismissInstructions, true);
     }
 
     fitInstructions ()
