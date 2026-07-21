@@ -129,7 +129,15 @@ const config = {
     height: 600,
     backgroundColor: '#000000',
     scene: Example,
-    pixelArt: true
+    pixelArt: true,
+    // Load images through an <img> tag instead of Phaser's default XHR/blob path.
+    // Under file:// in the Cordova WebView, XHR for local files is unreliable, so
+    // the default path could still fail before create() and leave a black screen.
+    // <img> loading works with file:// URLs, keeping the flame sheets loadable in
+    // the APK as well as on the web.
+    loader: {
+        imageLoadType: 'HTMLImageElement'
+    }
 };
 
 const game = new Phaser.Game(config);
