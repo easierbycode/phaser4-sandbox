@@ -44,32 +44,15 @@ class Example extends Phaser.Scene
         this.lights.enable();
         this.lights.setAmbientColor(0x1a1a1a);
 
-        // Build a wall of flames across the bottom of the canvas. Each sprite is
-        // routed through Light2D (setLighting), plays the shared animation from a
-        // staggered frame for variety, and is lit entirely via its normal map.
-        const frameWidth = 128;
-        const scale = 1.9;
-        const step = frameWidth * scale * 0.82;
-
-        this.flames = [];
-
-        for (let x = -step * 0.5; x < this.scale.width + step; x += step)
-        {
-            const flame = this.add.sprite(x, this.scale.height + 10, 'flames')
-                .setOrigin(0.5, 1)
-                .setScale(scale)
-                .setLighting(true)
-                .play('burn');
-
-            // Desync each column so the wall shimmers rather than pulsing as one.
-            flame.anims.setProgress(Math.abs(Math.sin(x)));
-
-            this.flames.push(flame);
-        }
+        // Build the wall of flames sized to the current screen, and rebuild it
+        // (plus re-fit the caption) whenever the game is resized so it always
+        // spans 100% of the display.
+        this.buildWall();
+        this.scale.on('resize', this.onResize, this);
 
         // A warm key light that follows the pointer - drag it across the flames
         // to watch the normal map catch the fire ridge by ridge.
-        this.mouseLight = this.lights.addLight(400, 400, 360, 0xffb060, 3);
+        this.mouseLight = this.lights.addLight(this.scale.width / 2, this.scale.height / 2, 360, 0xffb060, 3);
 
         // Two coloured lights sweeping the scene for constant motion.
         this.orbitA = this.lights.addLight(0, 0, 280, 0x3366ff, 2.2);
@@ -81,55 +64,176 @@ class Example extends Phaser.Scene
             this.mouseLight.y = pointer.y;
         });
 
-        // Click to cycle the key light through a small palette.
+        // A single inline instruction line. It follows the camera (fixed on
+        // screen) and sits above the flames.
+        this.instructions = this.add.text(16, 16, 'Move to light the flames  •  tap to change colour', {
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '20px',
+            color: '#ffd9aa',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setScrollFactor(0).setDepth(1000);
+
+        // Keep the single line on-screen: shrink it to fit narrow (portrait) widths.
+        this.fitInstructions();
+
+        // Hide the instructions on the very first touch. We listen at the DOM
+        // level (capture) rather than only through Phaser input because the
+        // viewer's live-mode enters native fullscreen on the first pointerdown,
+        // which can cancel that first pointer sequence before Phaser processes
+        // it - so a Phaser-only handler would miss touch #1. This fires on the
+        // same first-touch signal that triggers fullscreen, so it never misses.
+        this.dismissInstructions = () => this.hideInstructions();
+        window.addEventListener('pointerdown', this.dismissInstructions, true);
+        window.addEventListener('touchstart', this.dismissInstructions, true);
+
+        this.events.once('shutdown', () =>
+        {
+            window.removeEventListener('pointerdown', this.dismissInstructions, true);
+            window.removeEventListener('touchstart', this.dismissInstructions, true);
+        });
+
+        // Click / tap to cycle the key light through a small palette (also hides
+        // the instructions when the pointer event does reach Phaser).
         const colors = [ 0xffb060, 0xffffff, 0x00ffcc, 0xff2222, 0x66ff33 ];
         let current = 0;
 
         this.input.on('pointerdown', () =>
         {
+            this.hideInstructions();
+
             current = (current + 1) % colors.length;
             this.mouseLight.setColor(colors[current]);
         });
+    }
 
-        // Captions.
-        this.add.text(16, 16, 'Normal Map Lighting', {
-            fontFamily: 'Arial, sans-serif',
-            fontSize: '28px',
-            color: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 4
-        });
+    // Match the canvas to its container every frame. Scale.RESIZE only reacts to
+    // window resize events, but the viewer's "100%" / live-mode toggle resizes the
+    // parent element via a CSS class with no window event - so without this the
+    // canvas stays stuck at its boot size and gets letterboxed. Polling the parent
+    // size catches container changes however they happen (toggle, rotation, etc.).
+    fitToParent ()
+    {
+        const canvas = this.game.canvas;
+        const parent = canvas && canvas.parentElement;
 
-        this.add.text(16, 52, 'move the pointer to light the flames • click to change colour', {
-            fontFamily: 'Arial, sans-serif',
-            fontSize: '16px',
-            color: '#ffd9aa',
-            stroke: '#000000',
-            strokeThickness: 3
-        });
+        if (!parent)
+        {
+            return;
+        }
+
+        const w = Math.floor(parent.clientWidth);
+        const h = Math.floor(parent.clientHeight);
+
+        if (w > 0 && h > 0 && (Math.abs(this.scale.width - w) > 1 || Math.abs(this.scale.height - h) > 1))
+        {
+            this.scale.resize(w, h);
+        }
+    }
+
+    onResize ()
+    {
+        this.buildWall();
+        this.fitInstructions();
+    }
+
+    hideInstructions ()
+    {
+        if (!this.instructions)
+        {
+            return;
+        }
+
+        this.instructions.destroy();
+        this.instructions = null;
+
+        window.removeEventListener('pointerdown', this.dismissInstructions, true);
+        window.removeEventListener('touchstart', this.dismissInstructions, true);
+    }
+
+    fitInstructions ()
+    {
+        if (!this.instructions)
+        {
+            return;
+        }
+
+        this.instructions.setScale(1);
+
+        const maxTextWidth = this.scale.width - 32;
+
+        if (this.instructions.width > maxTextWidth)
+        {
+            this.instructions.setScale(maxTextWidth / this.instructions.width);
+        }
+    }
+
+    buildWall ()
+    {
+        const w = this.scale.width;
+        const h = this.scale.height;
+
+        // Clear any previous wall (on resize) before rebuilding.
+        if (this.flames)
+        {
+            this.flames.forEach(flame => flame.destroy());
+        }
+
+        this.flames = [];
+
+        // Scale each 128x160 frame so the flames stand roughly half the screen
+        // tall, clamped so they stay sensible on very short or very tall displays.
+        const frameWidth = 128;
+        const frameHeight = 160;
+        const scale = Phaser.Math.Clamp((h * 0.45) / frameHeight, 1.4, 4);
+        const step = frameWidth * scale * 0.82;
+
+        for (let x = -step * 0.5; x < w + step; x += step)
+        {
+            const flame = this.add.sprite(x, h + 10, 'flames')
+                .setOrigin(0.5, 1)
+                .setScale(scale)
+                .setLighting(true)
+                .play('burn');
+
+            // Desync each column so the wall shimmers rather than pulsing as one.
+            flame.anims.setProgress(Math.abs(Math.sin(x)));
+
+            this.flames.push(flame);
+        }
     }
 
     update (time)
     {
+        // Keep filling the container (catches the live-mode / "100%" toggle).
+        this.fitToParent();
+
         const cx = this.scale.width / 2;
+        const h = this.scale.height;
 
-        // Sweep the two coloured lights on opposite paths above the flames.
-        this.orbitA.x = cx + Math.cos(time / 900) * 340;
-        this.orbitA.y = 260 + Math.sin(time / 900) * 150;
+        // Sweep the two coloured lights on opposite paths above the flames,
+        // scaled to the current screen size.
+        this.orbitA.x = cx + Math.cos(time / 900) * (this.scale.width * 0.42);
+        this.orbitA.y = h * 0.45 + Math.sin(time / 900) * (h * 0.25);
 
-        this.orbitB.x = cx + Math.cos(time / 1300 + Math.PI) * 320;
-        this.orbitB.y = 300 + Math.sin(time / 1300 + Math.PI) * 150;
+        this.orbitB.x = cx + Math.cos(time / 1300 + Math.PI) * (this.scale.width * 0.4);
+        this.orbitB.y = h * 0.5 + Math.sin(time / 1300 + Math.PI) * (h * 0.25);
     }
 }
 
 const config = {
     type: Phaser.WEBGL,
-    parent: 'phaser-example',
-    width: 800,
-    height: 600,
     backgroundColor: '#000000',
     scene: Example,
     pixelArt: true,
+    // Fill 100% of the container / screen and track resizes and orientation
+    // changes instead of running at a fixed 800x600.
+    scale: {
+        mode: Phaser.Scale.RESIZE,
+        parent: 'phaser-example',
+        width: '100%',
+        height: '100%'
+    },
     // Load images through an <img> tag instead of Phaser's default XHR/blob path.
     // Under file:// in the Cordova WebView, XHR for local files is unreliable, so
     // the default path could still fail before create() and leave a black screen.
